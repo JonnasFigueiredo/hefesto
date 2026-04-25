@@ -1,0 +1,27 @@
+:root {
+  /* Backgrounds */
+  --bg-base: #07090f;
+  --bg-elevated: #0d1320;
+  --bg-overlay: #131b2e;
+
+  /* Borders */
+  --border-dim: #1a2440;
+  --border: #2a3a66;
+  --border-accent: #00d4ff;
+
+  /* Text */
+  --text: #e6edf9;
+  --text-dim: #7a8aa8;
+  --text-muted: #4a5878;
+
+  /* Accents */
+  --accent-cyan: #00d4ff;
+  --accent-amber: #ffb547;
+  --accent-magenta: #ff3d8a;
+  --accent-green: #00ff9f;
+
+  /* Effects */
+  --scanline: rgba(0, 212, 255, 0.03);
+  --glow-cyan: 0 0 12px rgba(0, 212, 255, 0.35);
+  --glow-cyan-strong: 0 0 0 1px var(--accent-cyan), 0 0 16px rgba(0, 212, 255, 0.3);
+}

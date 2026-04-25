@@ -1,0 +1,24 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# Backend
+hefesto-backend/target/
+hefesto-backend/src/main/resources/application-local.yml
+hefesto-backend/src/main/resources/application-local.properties
+
+# Frontend
+hefesto-frontend/node_modules/
+hefesto-frontend/dist/
+hefesto-frontend/.vite/
+
+# Env / secrets
+.env
+.env.local
+*.local

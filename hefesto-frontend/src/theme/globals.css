@@ -1,0 +1,91 @@
+@import './tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg-base);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(0, 212, 255, 0.3);
+  color: var(--text);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-dim);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border);
+}
+
+/* Utility helpers */
+.glow-cyan {
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.45);
+}
+
+.box-glow-cyan {
+  box-shadow: var(--glow-cyan-strong);
+}
+
+.tracking-display {
+  letter-spacing: 0.12em;
+}
+
+.tracking-wider-display {
+  letter-spacing: 0.2em;
+}
+
+/* Subtle CRT flicker (opt-in via class) */
+@keyframes crt-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.97; }
+}
+.crt-flicker {
+  animation: crt-flicker 0.15s infinite;
+}
+
+/* Equalizer bars for ThinkingIndicator */
+@keyframes eq-bar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+.eq-bar { animation: eq-bar 0.9s ease-in-out infinite; }
+
+/* Streaming cursor */
+@keyframes blink-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.streaming-cursor::after {
+  content: '\u2589';
+  margin-left: 2px;
+  color: var(--accent-cyan);
+  animation: blink-cursor 1s step-end infinite;
+}
