@@ -5,6 +5,8 @@ interface ChatState {
   conversations: Conversation[]
   activeId: string | null
   selectedAdapterId: string | null
+  /** Id da mensagem atualmente recebendo chunks (assistant). */
+  streamingMessageId: string | null
 
   setSelectedAdapter: (id: string) => void
   setActive: (id: string | null) => void
@@ -15,7 +17,23 @@ interface ChatState {
   /** Garante que uma conversa exista; usado quando o backend retorna um id novo. */
   upsertConversation: (id: string, adapterId: string) => void
 
-  appendMessage: (conversationId: string, msg: Omit<Message, 'id'>) => void
+  appendMessage: (conversationId: string, msg: Omit<Message, 'id'>) => string
+
+  /** Cria uma mensagem assistant vazia que receberá chunks. Retorna id. */
+  startStreaming: (conversationId: string, adapterId: string) => string
+
+  /** Anexa texto à mensagem em streaming. */
+  appendChunk: (conversationId: string, content: string) => void
+
+  /** Finaliza streaming, atribui meta. */
+  completeStreaming: (
+    conversationId: string,
+    finalContent: string,
+    meta: { latencyMs?: number; model?: string | null; adapterId?: string },
+  ) => void
+
+  /** Cancela streaming, mantém o que já chegou. */
+  cancelStreaming: (conversationId: string) => void
 
   removeConversation: (id: string) => void
 
@@ -23,7 +41,7 @@ interface ChatState {
 }
 
 const localId = () =>
-  (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 10))
+  globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 10)
 
 const messageId = () => localId().slice(0, 12)
 
@@ -31,6 +49,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   conversations: [],
   activeId: null,
   selectedAdapterId: null,
+  streamingMessageId: null,
 
   setSelectedAdapter: (id) => set({ selectedAdapterId: id }),
 
@@ -70,7 +89,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   appendMessage: (conversationId, msg) => {
-    const newMsg: Message = { id: messageId(), ...msg }
+    const newId = messageId()
+    const newMsg: Message = { id: newId, ...msg }
     set((s) => ({
       conversations: s.conversations.map((c) => {
         if (c.id !== conversationId) return c
@@ -85,6 +105,87 @@ export const useChatStore = create<ChatState>((set, get) => ({
         return { ...c, title, messages, updatedAt: Date.now() }
       }),
     }))
+    return newId
+  },
+
+  startStreaming: (conversationId, adapterId) => {
+    const newId = messageId()
+    const placeholder: Message = {
+      id: newId,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+      meta: { adapterId },
+    }
+    set((s) => ({
+      conversations: s.conversations.map((c) =>
+        c.id === conversationId
+          ? { ...c, messages: [...c.messages, placeholder], updatedAt: Date.now() }
+          : c,
+      ),
+      streamingMessageId: newId,
+    }))
+    return newId
+  },
+
+  appendChunk: (conversationId, content) => {
+    const targetId = get().streamingMessageId
+    if (!targetId) return
+    set((s) => ({
+      conversations: s.conversations.map((c) => {
+        if (c.id !== conversationId) return c
+        return {
+          ...c,
+          messages: c.messages.map((m) =>
+            m.id === targetId ? { ...m, content: m.content + content } : m,
+          ),
+          updatedAt: Date.now(),
+        }
+      }),
+    }))
+  },
+
+  completeStreaming: (conversationId, finalContent, meta) => {
+    const targetId = get().streamingMessageId
+    if (!targetId) return
+    set((s) => ({
+      conversations: s.conversations.map((c) => {
+        if (c.id !== conversationId) return c
+        return {
+          ...c,
+          messages: c.messages.map((m) =>
+            m.id === targetId
+              ? { ...m, content: finalContent, meta: { ...m.meta, ...meta } }
+              : m,
+          ),
+          updatedAt: Date.now(),
+        }
+      }),
+      streamingMessageId: null,
+    }))
+  },
+
+  cancelStreaming: (conversationId) => {
+    const targetId = get().streamingMessageId
+    if (!targetId) {
+      set({ streamingMessageId: null })
+      return
+    }
+    set((s) => ({
+      conversations: s.conversations.map((c) => {
+        if (c.id !== conversationId) return c
+        // Mantém o que já chegou. Marca meta com aborted=true.
+        return {
+          ...c,
+          messages: c.messages.map((m) =>
+            m.id === targetId
+              ? { ...m, meta: { ...m.meta, aborted: true } }
+              : m,
+          ),
+        }
+      }),
+      streamingMessageId: null,
+    }))
   },
 
   removeConversation: (id) => {
@@ -95,7 +196,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     })
   },
 
-  clearAll: () => set({ conversations: [], activeId: null }),
+  clearAll: () => set({ conversations: [], activeId: null, streamingMessageId: null }),
 }))
 
 /** Helper: obtém a conversa ativa. */

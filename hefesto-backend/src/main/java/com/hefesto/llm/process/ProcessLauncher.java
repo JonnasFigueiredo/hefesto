@@ -27,4 +27,17 @@ public interface ProcessLauncher {
     default ProcessResult run(String... command) {
         return run(null, null, command);
     }
+
+    /**
+     * Inicia um processo em modo streaming. Diferente do {@link #run}, retorna
+     * imediatamente — o chamador consome stdout linha a linha via
+     * {@link StreamingProcess#readLine()} enquanto o processo ainda roda.
+     *
+     * @param stdinInput  texto a enviar via stdin antes de começar a ler
+     *                    stdout. Pode ser null. Será enviado em UTF-8.
+     * @param command     binário e argumentos.
+     * @return wrapper do processo. SEMPRE feche via try-with-resources.
+     * @throws ProcessLaunchException se o processo não puder ser iniciado.
+     */
+    StreamingProcess startStreaming(String stdinInput, String... command);
 }

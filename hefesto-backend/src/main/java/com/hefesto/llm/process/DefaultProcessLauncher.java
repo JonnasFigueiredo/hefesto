@@ -91,6 +91,26 @@ public class DefaultProcessLauncher implements ProcessLauncher {
         }
     }
 
+    @Override
+    public StreamingProcess startStreaming(String stdinInput, String... command) {
+        if (command == null || command.length == 0) {
+            throw new ProcessLaunchException("command must not be empty");
+        }
+        String[] effectiveCommand = adaptForWindows(command);
+
+        log.debug("Starting streaming process: {} (hasStdin={})",
+            String.join(" ", effectiveCommand), stdinInput != null);
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(effectiveCommand);
+            Process process = pb.start();
+            return new StreamingProcess(process, stdinInput);
+        } catch (IOException e) {
+            throw new ProcessLaunchException(
+                "Failed to start streaming process: " + command[0] + " (" + e.getMessage() + ")", e);
+        }
+    }
+
     /**
      * No Windows, envolve invocações de .cmd/.bat com {@code cmd.exe /c} para
      * evitar problemas de quoting do ProcessBuilder e restrições de segurança

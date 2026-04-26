@@ -10,6 +10,7 @@ export interface Message {
     latencyMs?: number
     model?: string | null
     adapterId?: string
+    aborted?: boolean
   }
 }
 

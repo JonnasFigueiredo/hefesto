@@ -8,14 +8,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hefesto.llm.ChatChunk;
 import com.hefesto.llm.ChatRequest;
 import com.hefesto.llm.ChatResponse;
+import com.hefesto.llm.ChatStreamHandler;
 import com.hefesto.llm.LlmAdapter;
 import com.hefesto.llm.LlmAdapterException;
 import com.hefesto.llm.Message;
 import com.hefesto.llm.process.ProcessLauncher;
 import com.hefesto.llm.process.ProcessLaunchException;
 import com.hefesto.llm.process.ProcessResult;
+import com.hefesto.llm.process.StreamingProcess;
 
 /**
  * Adapter para o CLI oficial do Claude Code da Anthropic.
@@ -33,6 +38,8 @@ import com.hefesto.llm.process.ProcessResult;
 public class ClaudeCodeCliAdapter implements LlmAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(ClaudeCodeCliAdapter.class);
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final String cliPath;
     private final ProcessLauncher launcher;
@@ -109,6 +116,128 @@ public class ClaudeCodeCliAdapter implements LlmAdapter {
         }
 
         return new ChatResponse(content, id(), latency, null);
+    }
+
+    @Override
+    public void chatStream(ChatRequest request, ChatStreamHandler handler) {
+        String prompt = buildPrompt(request);
+        long start = Instant.now().toEpochMilli();
+
+        if (log.isDebugEnabled()) {
+            log.debug("Streaming prompt to Claude ({} chars, {} history messages)",
+                prompt.length(), request.history().size());
+        }
+
+        StringBuilder fullText = new StringBuilder();
+        String lastAssistantText = "";
+        String model = null;
+        String sessionId = null;
+
+        try (StreamingProcess proc = launcher.startStreaming(
+                prompt,
+                cliPath, "-p",
+                "--output-format", "stream-json",
+                "--verbose")) {
+
+            String line;
+            while ((line = proc.readLine()) != null) {
+                if (handler.isAborted()) {
+                    proc.abort();
+                    return;
+                }
+                if (line.isBlank()) continue;
+
+                try {
+                    JsonNode root = MAPPER.readTree(line);
+                    String type = root.path("type").asText("");
+
+                    switch (type) {
+                        case "system":
+                            if (root.has("model") && model == null) {
+                                model = root.path("model").asText(null);
+                            }
+                            if (root.has("session_id") && sessionId == null) {
+                                sessionId = root.path("session_id").asText(null);
+                            }
+                            break;
+
+                        case "assistant":
+                            JsonNode content = root.path("message").path("content");
+                            if (content.isArray()) {
+                                StringBuilder thisMsg = new StringBuilder();
+                                for (JsonNode block : content) {
+                                    if ("text".equals(block.path("type").asText())) {
+                                        thisMsg.append(block.path("text").asText(""));
+                                    }
+                                }
+                                String thisText = thisMsg.toString();
+                                if (!thisText.isEmpty()) {
+                                    String delta;
+                                    if (thisText.startsWith(lastAssistantText) && lastAssistantText.length() < thisText.length()) {
+                                        // incremental: emite só o que é novo
+                                        delta = thisText.substring(lastAssistantText.length());
+                                    } else {
+                                        // mensagem nova / sem prefixo comum: emite inteiro
+                                        delta = thisText;
+                                        if (fullText.length() > 0) fullText.append("\n");
+                                    }
+                                    handler.onChunk(ChatChunk.content(delta));
+                                    fullText.append(delta);
+                                    lastAssistantText = thisText;
+                                }
+                            }
+                            break;
+
+                        case "result":
+                            if (model == null && root.has("model")) {
+                                model = root.path("model").asText(null);
+                            }
+                            // se nada chegou via 'assistant' mas há 'result', usa
+                            if (fullText.length() == 0 && root.has("result")) {
+                                String r = root.path("result").asText("");
+                                if (!r.isEmpty()) {
+                                    handler.onChunk(ChatChunk.content(r));
+                                    fullText.append(r);
+                                }
+                            }
+                            break;
+
+                        default:
+                            // user/tool_use/etc — ignora silenciosamente
+                            break;
+                    }
+                } catch (Exception parseEx) {
+                    log.debug("Failed to parse stream line: '{}' ({})",
+                        truncate(line, 200), parseEx.getMessage());
+                }
+            }
+
+            ProcessResult finalResult = proc.awaitCompletion(chatTimeout);
+            if (handler.isAborted()) return;
+
+            if (!finalResult.success()) {
+                String stderr = finalResult.stderr() == null ? "" : finalResult.stderr().trim();
+                handler.onError(new LlmAdapterException(
+                    "Claude Code retornou exit=" + finalResult.exitCode()
+                        + (stderr.isEmpty() ? "" : " :: " + truncate(stderr, 500))));
+                return;
+            }
+
+            if (fullText.length() == 0) {
+                handler.onError(new LlmAdapterException("Claude Code retornou stream vazio"));
+                return;
+            }
+
+            long latency = Instant.now().toEpochMilli() - start;
+            ChatResponse response = new ChatResponse(fullText.toString(), id(), latency, model);
+            handler.onComplete(response);
+        } catch (ProcessLaunchException e) {
+            handler.onError(new LlmAdapterException(
+                "Falha ao executar Claude Code CLI: " + e.getMessage(), e));
+        } catch (Throwable t) {
+            handler.onError(new LlmAdapterException(
+                "Erro inesperado durante streaming: " + t.getMessage(), t));
+        }
     }
 
     /**

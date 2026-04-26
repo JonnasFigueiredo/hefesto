@@ -5,6 +5,8 @@ import type { Message } from '@/types/chat'
 
 interface MessageBubbleProps {
   message: Message
+  /** Mostra cursor piscando indicando que ainda está chegando texto. */
+  streaming?: boolean
 }
 
 function formatTime(ts: number): string {
@@ -13,7 +15,7 @@ function formatTime(ts: number): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, streaming = false }: MessageBubbleProps) {
   const time = formatTime(message.timestamp)
 
   if (message.role === 'user') {
@@ -62,6 +64,15 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           {meta?.model && (
             <span className="text-[var(--text-muted)]">{meta.model}</span>
           )}
+          {streaming && (
+            <span className="text-[var(--accent-cyan)] flex items-center gap-1">
+              <span className="w-[6px] h-[6px] rounded-full bg-[var(--accent-cyan)] animate-pulse-dot" />
+              STREAMING
+            </span>
+          )}
+          {meta?.aborted && (
+            <span className="text-[var(--accent-magenta)]">ABORTED</span>
+          )}
         </div>
         <div
           className={cn(
@@ -74,7 +85,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           <span aria-hidden className="pointer-events-none absolute -bottom-px -left-px h-2 w-2 border-b border-l border-[var(--accent-cyan)]" />
           <span aria-hidden className="pointer-events-none absolute -bottom-px -right-px h-2 w-2 border-b border-r border-[var(--accent-cyan)]" />
 
-          <div className="prose-hefesto">
+          <div className={cn('prose-hefesto', streaming && 'streaming-cursor')}>
+            {message.content.length === 0 && streaming && (
+              <span className="font-mono text-[12px] text-[var(--text-muted)]">
+                // awaiting first token
+              </span>
+            )}
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{

@@ -1,15 +1,24 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { Send } from 'lucide-react'
+import { Send, Square } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { KBD } from '@/components/ui/KBD'
 
 interface ComposerProps {
   onSend: (text: string) => void
+  onAbort?: () => void
   disabled?: boolean
   isSending?: boolean
+  /** True quando há streaming em curso (mostra STOP em vez de TRANSMIT). */
+  isStreaming?: boolean
 }
 
-export function Composer({ onSend, disabled = false, isSending = false }: ComposerProps) {
+export function Composer({
+  onSend,
+  onAbort,
+  disabled = false,
+  isSending = false,
+  isStreaming = false,
+}: ComposerProps) {
   const [value, setValue] = useState('')
   const taRef = useRef<HTMLTextAreaElement>(null)
 
@@ -49,31 +58,54 @@ export function Composer({ onSend, disabled = false, isSending = false }: Compos
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKey}
-        disabled={disabled || isSending}
+        disabled={disabled || isSending || isStreaming}
         rows={2}
-        placeholder={isSending ? '// AWAITING RESPONSE...' : '// TRANSMIT MESSAGE...'}
+        placeholder={
+          isStreaming
+            ? '// STREAMING IN PROGRESS — STOP TO INTERRUPT'
+            : isSending
+              ? '// AWAITING RESPONSE...'
+              : '// TRANSMIT MESSAGE...'
+        }
         className="w-full px-4 py-3 bg-transparent text-[13px] text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none resize-none font-sans disabled:opacity-60"
       />
 
       <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border-dim)] font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
         <div>
-          {value.length > 0 ? `${value.length} chars` : '// READY'}
+          {isStreaming
+            ? '// LIVE'
+            : value.length > 0
+              ? `${value.length} chars`
+              : '// READY'}
         </div>
         <div className="flex items-center gap-3">
-          <span className="hidden sm:flex items-center gap-1">
-            <KBD>⌘</KBD>
-            <span>+</span>
-            <KBD>⏎</KBD>
-          </span>
-          <Button
-            variant="primary"
-            size="sm"
-            disabled={disabled || isSending || value.trim().length === 0}
-            onClick={submit}
-            icon={<Send size={12} strokeWidth={1.5} />}
-          >
-            {isSending ? 'SENDING' : 'TRANSMIT'}
-          </Button>
+          {!isStreaming && (
+            <span className="hidden sm:flex items-center gap-1">
+              <KBD>⌘</KBD>
+              <span>+</span>
+              <KBD>⏎</KBD>
+            </span>
+          )}
+          {isStreaming ? (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={onAbort}
+              icon={<Square size={12} strokeWidth={1.5} fill="currentColor" />}
+            >
+              STOP
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={disabled || isSending || value.trim().length === 0}
+              onClick={submit}
+              icon={<Send size={12} strokeWidth={1.5} />}
+            >
+              {isSending ? 'SENDING' : 'TRANSMIT'}
+            </Button>
+          )}
         </div>
       </div>
     </div>
