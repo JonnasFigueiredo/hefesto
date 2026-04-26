@@ -17,9 +17,9 @@ claude:
     path: C:\Users\Jonnas\AppData\Roaming\npm\claude.cmd
 
 jira:
-  url: ${https://figsj.atlassian.net}
-  email: ${jonnasrock@gmail.com}
-  token: ${ATATT3xFfGF0MX1h8d60b4TgGKqBOvq61cDQF1TIxj572KerWq7sYm3PzcNLQHekMBgdIxQ-c9tNPwu0Nw6x_sdrD7JBZF0BS13bVs_HzoWl_iHHLv5W8cI2ovaxmMAoOTj-vYMa1U2_2PIdhckHKQBFWC4YJgleMm5ZIr480tVhavLq_-YYjAA=82B59AE8}
+  url: ${JIRA_URL:}
+  email: ${JIRA_EMAIL:}
+  token: ${JIRA_TOKEN:}
 
 logging:
   level:

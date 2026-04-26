@@ -1,86 +1,150 @@
-import { Frame } from '@/components/ui/Frame'
+import { useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
+import { Frame } from '@/components/ui/Frame'
+import { JqlSearchBar } from '@/components/jira/JqlSearchBar'
+import { IssueList } from '@/components/jira/IssueList'
+import { IssueDetail } from '@/components/jira/IssueDetail'
+import { BeetleMascot } from '@/components/jira/BeetleMascot'
+import { useJiraIssue, useJiraSearch, useJiraStatus } from '@/hooks/useJira'
+import { Link } from 'react-router-dom'
+
+const DEFAULT_JQL = 'assignee = currentUser() ORDER BY updated DESC'
 
 export function JiraPage() {
+  const [jql, setJql] = useState<string>(DEFAULT_JQL)
+  const [activeKey, setActiveKey] = useState<string | null>(null)
+
+  const status = useJiraStatus()
+  const search = useJiraSearch(jql, status.data?.configured === true)
+  const issue = useJiraIssue(activeKey)
+
+  const isConfigured = status.data?.configured === true
+
   return (
-    <div className="h-full flex flex-col gap-6">
+    <div className="h-full flex flex-col gap-4 relative">
+      {/* Beetle decorativo no canto */}
+      <div
+        aria-hidden
+        className="absolute top-0 right-0 opacity-25 hover:opacity-60 transition-opacity pointer-events-none"
+        style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.15))' }}
+      >
+        <BeetleMascot size={90} />
+      </div>
+
       <div className="flex items-center gap-3">
         <h1 className="font-display text-2xl uppercase tracking-[0.25em] text-[var(--accent-cyan)] glow-cyan">
           JIRA
         </h1>
-        <Badge variant="dim">STAGE 1 // STUB</Badge>
+        <Badge variant="cyan">STAGE 4 // READ</Badge>
+        {isConfigured ? (
+          <Badge variant="green">CONNECTED</Badge>
+        ) : status.isLoading ? (
+          <Badge variant="dim">CHECKING...</Badge>
+        ) : (
+          <Badge variant="magenta">NOT CONFIGURED</Badge>
+        )}
       </div>
 
-      <Frame title="// ISSUE TRACKER" className="flex-1">
-        <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-16">
-          
-          {/* Arte do Besouro em SVG */}
-          <div className="relative flex justify-center items-center py-4">
-            <svg
-              width="200"
-              height="200"
-              viewBox="0 0 200 200"
-              xmlns="http://www.w3.org/2000/svg"
-              className="stroke-[var(--text-muted)] fill-transparent"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-label="Esquemático de um Besouro"
-              role="img"
-            >
-              {/* Antenas */}
-              <path d="M 80 30 Q 60 10 30 20" />
-              <path d="M 120 30 Q 140 10 170 20" />
-
-              {/* Mandíbulas */}
-              <path d="M 85 45 C 75 25 55 35 65 55" />
-              <path d="M 115 45 C 125 25 145 35 135 55" />
-
-              {/* Cabeça */}
-              <polygon points="85,45 115,45 125,60 75,60" />
-              
-              {/* Olhos (com a cor de destaque) */}
-              <circle cx="75" cy="55" r="4" className="fill-[var(--accent-cyan)] stroke-[var(--accent-cyan)] opacity-80" />
-              <circle cx="125" cy="55" r="4" className="fill-[var(--accent-cyan)] stroke-[var(--accent-cyan)] opacity-80" />
-
-              {/* Tórax (Mecânico/Engrenagem) */}
-              <polygon points="70,65 130,65 140,95 60,95" />
-              <line x1="85" y1="65" x2="85" y2="95" />
-              <line x1="115" y1="65" x2="115" y2="95" />
-              <circle cx="100" cy="80" r="8" />
-              <circle cx="100" cy="80" r="2" className="fill-[var(--text-muted)]" />
-
-              {/* Carapaça / Abdômen */}
-              <path d="M 55 100 L 145 100 C 155 145 130 185 100 195 C 70 185 45 145 55 100 Z" />
-              
-              {/* Divisões das asas */}
-              <line x1="100" y1="100" x2="100" y2="125" />
-              <line x1="100" y1="170" x2="100" y2="195" />
-              <line x1="60" y1="115" x2="140" y2="115" />
-              <line x1="70" y1="175" x2="130" y2="175" />
-
-              {/* Patas Esquerdas */}
-              <polyline points="70,75 40,65 20,85" />
-              <polyline points="65,90 30,95 15,125" />
-              <polyline points="65,115 35,130 25,160" />
-
-              {/* Patas Direitas */}
-              <polyline points="130,75 160,65 180,85" />
-              <polyline points="135,90 170,95 185,125" />
-              <polyline points="135,115 165,130 175,160" />
-
-              {/* Painel Central com JQL READY */}
-              <rect x="65" y="130" width="70" height="35" rx="4" strokeDasharray="3 3" className="fill-transparent" />
-              <text x="100" y="146" textAnchor="middle" className="font-mono text-[11px] fill-[var(--accent-cyan)] stroke-none tracking-widest font-bold">JQL</text>
-              <text x="100" y="158" textAnchor="middle" className="font-mono text-[9px] fill-[var(--text-muted)] stroke-none tracking-[0.2em]">READY</text>
-            </svg>
+      {!isConfigured && !status.isLoading && (
+        <Frame variant="danger" title="// JIRA NOT CONFIGURED">
+          <div className="font-sans text-[13px] text-[var(--text-dim)] mb-3">
+            Configure as credenciais Jira em <code className="font-mono text-[12px] text-[var(--accent-cyan)]">application-local.yml</code> ou
+            via env vars (<code className="font-mono text-[12px]">JIRA_URL</code>, <code className="font-mono text-[12px]">JIRA_EMAIL</code>, <code className="font-mono text-[12px]">JIRA_TOKEN</code>),
+            depois reinicie o backend.
           </div>
+          <Link
+            to="/settings"
+            className="inline-block font-display uppercase tracking-[0.15em] text-[12px] text-[var(--accent-cyan)] hover:underline"
+          >
+            // GO TO SETTINGS →
+          </Link>
+        </Frame>
+      )}
 
-          <div className="font-mono text-[12px] text-[var(--text-dim)] mt-2">
-            // JIRA INTEGRATION COMING IN STAGE 4
-          </div>
+      {isConfigured && (
+        <div className="flex-1 grid grid-cols-[minmax(380px,2fr)_3fr] gap-4 min-h-0">
+          {/* Coluna esquerda: busca + lista */}
+          <Frame title="// QUERY" className="flex flex-col" padded={false}>
+            <div className="p-4 border-b border-[var(--border-dim)]">
+              <JqlSearchBar
+                initialJql={jql}
+                onExecute={(q) => {
+                  setJql(q)
+                  setActiveKey(null)
+                }}
+                isLoading={search.isFetching}
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <IssueList
+                issues={search.data?.issues ?? []}
+                isLast={search.data?.isLast ?? true}
+                activeKey={activeKey}
+                onSelect={(k) => setActiveKey(k)}
+                isLoading={search.isLoading}
+                isError={search.isError}
+                errorMessage={
+                  search.error instanceof Error ? search.error.message : undefined
+                }
+              />
+            </div>
+          </Frame>
+
+          {/* Coluna direita: detalhe */}
+          <Frame title="// ISSUE" className="flex flex-col" padded={false}>
+            <div className="p-5 flex-1 min-h-0 overflow-hidden">
+              {!activeKey ? (
+                <EmptyState />
+              ) : issue.isLoading ? (
+                <DetailLoading />
+              ) : issue.isError ? (
+                <DetailError
+                  message={issue.error instanceof Error ? issue.error.message : 'failed'}
+                />
+              ) : issue.data ? (
+                <IssueDetail issue={issue.data} />
+              ) : null}
+            </div>
+          </Frame>
         </div>
-      </Frame>
+      )}
+    </div>
+  )
+}
+
+function EmptyState() {
+  return (
+    <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-12">
+      <BeetleMascot size={140} className="opacity-40" />
+      <div className="font-mono text-[12px] text-[var(--text-dim)] uppercase tracking-[0.18em]">
+        // SELECT AN ISSUE TO INSPECT
+      </div>
+      <div className="font-mono text-[10px] text-[var(--text-muted)] max-w-md">
+        Use a barra de busca ou clique em uma das sugestões rápidas (MEUS, EM PROGRESSO, etc.)
+      </div>
+    </div>
+  )
+}
+
+function DetailLoading() {
+  return (
+    <div className="space-y-4">
+      <div className="h-8 w-32 bg-[var(--bg-overlay)] animate-shimmer" />
+      <div className="h-4 w-3/4 bg-[var(--bg-overlay)] animate-shimmer" />
+      <div className="h-4 w-1/2 bg-[var(--bg-overlay)] animate-shimmer" />
+      <div className="border-t border-[var(--border-dim)] pt-4 space-y-2">
+        <div className="h-3 bg-[var(--bg-overlay)] w-full" />
+        <div className="h-3 bg-[var(--bg-overlay)] w-5/6" />
+        <div className="h-3 bg-[var(--bg-overlay)] w-4/6" />
+      </div>
+    </div>
+  )
+}
+
+function DetailError({ message }: { message: string }) {
+  return (
+    <div className="border border-[var(--accent-magenta)] p-4 font-mono text-[11px] text-[var(--accent-magenta)]">
+      // ERROR // {message}
     </div>
   )
 }
