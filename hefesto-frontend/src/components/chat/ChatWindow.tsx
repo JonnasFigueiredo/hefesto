@@ -5,6 +5,7 @@ import { StatusDot } from '@/components/ui/StatusDot'
 import { MessageList } from './MessageList'
 import { Composer } from './Composer'
 import { AdapterSelector } from './AdapterSelector'
+import { ContextBar } from './ContextBar'
 import { useChatStore, useActiveConversation } from '@/store/chatStore'
 import { useChatStream } from '@/hooks/useChatStream'
 
@@ -66,6 +67,9 @@ export function ChatWindow() {
           </Button>
         )}
       </div>
+
+      {/* Context bar — agent + attachments + jira issue */}
+      {conv && <ContextBar />}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 min-h-0">

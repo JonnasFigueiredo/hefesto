@@ -25,7 +25,10 @@ public final class WsMessages {
         String type,
         String adapterId,
         String conversationId,
-        String message
+        String message,
+        String agentId,
+        java.util.List<String> attachmentIds,
+        String jiraIssueKey
     ) {}
 
     public record OutChunk(

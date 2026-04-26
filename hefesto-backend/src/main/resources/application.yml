@@ -10,6 +10,11 @@ spring:
     # Carrega application-local.yml se existir (gitignored, contém credenciais).
     # 'optional:' impede falha caso o arquivo não exista (ex: rodando em CI).
     import: optional:classpath:application-local.yml
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 1MB
+      max-request-size: 2MB
 
 # Defaults seguros — sobrescritos por application-local.yml ou env vars.
 claude:

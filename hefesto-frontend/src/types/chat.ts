@@ -14,10 +14,21 @@ export interface Message {
   }
 }
 
+/**
+ * Contexto persistente da conversa: agente, arquivos anexados, issue do Jira.
+ * Reaplicado a cada mensagem (Claude Code é stateless por chamada).
+ */
+export interface ConversationContext {
+  agentId: string
+  attachmentIds: string[]
+  jiraIssueKey: string | null
+}
+
 export interface Conversation {
   id: string
   title: string | null
   adapterId: string
+  context: ConversationContext
   createdAt: number
   updatedAt: number
   messages: Message[]

@@ -12,6 +12,9 @@ export interface WsOutgoing {
   adapterId?: string
   conversationId?: string | null
   message?: string
+  agentId?: string
+  attachmentIds?: string[]
+  jiraIssueKey?: string | null
 }
 
 export interface WsIncomingChunk {

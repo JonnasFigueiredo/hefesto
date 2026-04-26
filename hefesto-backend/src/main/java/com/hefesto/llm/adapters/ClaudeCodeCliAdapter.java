@@ -241,17 +241,13 @@ public class ClaudeCodeCliAdapter implements LlmAdapter {
     }
 
     /**
-     * Concatena history + nova mensagem em um único prompt textual.
-     * Estratégia simples para Etapa 2; Etapa 3 mandará via stdin estruturado.
+     * O prompt vem pronto do {@link com.hefesto.chat.PromptBuilder} (system
+     * prompt + contexto + mensagem). O adapter apenas o repassa pro CLI sem
+     * adicionar role markers ou history — a estratégia de prompt é
+     * responsabilidade do orquestrador, não do adapter.
      */
     private String buildPrompt(ChatRequest request) {
-        StringBuilder sb = new StringBuilder();
-        for (Message msg : request.history()) {
-            sb.append("[").append(msg.role().name()).append("]\n");
-            sb.append(msg.content()).append("\n\n");
-        }
-        sb.append("[USER]\n").append(request.userMessage());
-        return sb.toString();
+        return request.userMessage() == null ? "" : request.userMessage();
     }
 
     private static String truncate(String s, int max) {

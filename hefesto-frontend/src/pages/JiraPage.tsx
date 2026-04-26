@@ -6,11 +6,14 @@ import { IssueList } from '@/components/jira/IssueList'
 import { IssueDetail } from '@/components/jira/IssueDetail'
 import { BeetleMascot } from '@/components/jira/BeetleMascot'
 import { useJiraIssue, useJiraSearch, useJiraStatus } from '@/hooks/useJira'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useChatStore } from '@/store/chatStore'
+import type { JiraIssue } from '@/types/jira'
 
 const DEFAULT_JQL = 'assignee = currentUser() ORDER BY updated DESC'
 
 export function JiraPage() {
+  const navigate = useNavigate()
   const [jql, setJql] = useState<string>(DEFAULT_JQL)
   const [activeKey, setActiveKey] = useState<string | null>(null)
 
@@ -19,6 +22,15 @@ export function JiraPage() {
   const issue = useJiraIssue(activeKey)
 
   const isConfigured = status.data?.configured === true
+
+  const handleSendToChat = (target: JiraIssue) => {
+    const state = useChatStore.getState()
+    const adapterId = state.selectedAdapterId ?? 'claude-code'
+    state.createConversation(adapterId, {
+      jiraIssueKey: target.key,
+    })
+    navigate('/chat')
+  }
 
   return (
     <div className="h-full flex flex-col gap-4 relative">
@@ -102,7 +114,7 @@ export function JiraPage() {
                   message={issue.error instanceof Error ? issue.error.message : 'failed'}
                 />
               ) : issue.data ? (
-                <IssueDetail issue={issue.data} />
+                <IssueDetail issue={issue.data} onSendToChat={handleSendToChat} />
               ) : null}
             </div>
           </Frame>

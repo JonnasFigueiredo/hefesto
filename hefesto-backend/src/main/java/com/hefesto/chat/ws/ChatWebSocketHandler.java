@@ -1,6 +1,7 @@
 package com.hefesto.chat.ws;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -16,14 +17,15 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hefesto.chat.ChatService;
 import com.hefesto.chat.Conversation;
 import com.hefesto.chat.ConversationStore;
+import com.hefesto.chat.dto.ChatRequestDto;
 import com.hefesto.llm.ChatChunk;
 import com.hefesto.llm.ChatRequest;
 import com.hefesto.llm.ChatResponse;
 import com.hefesto.llm.ChatStreamHandler;
 import com.hefesto.llm.LlmAdapter;
-import com.hefesto.llm.LlmAdapterRegistry;
 import com.hefesto.llm.Message;
 
 /**
@@ -35,7 +37,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ChatWebSocketHandler.class);
 
-    private final LlmAdapterRegistry registry;
+    private final ChatService chatService;
     private final ConversationStore store;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -49,8 +51,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     /** Flag de abort por sessão WS. */
     private final Map<String, AtomicBoolean> abortFlags = new ConcurrentHashMap<>();
 
-    public ChatWebSocketHandler(LlmAdapterRegistry registry, ConversationStore store) {
-        this.registry = registry;
+    public ChatWebSocketHandler(ChatService chatService, ConversationStore store) {
+        this.chatService = chatService;
         this.store = store;
     }
 
@@ -94,14 +96,11 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        LlmAdapter adapter = registry.get(in.adapterId()).orElse(null);
-        if (adapter == null) {
-            sendError(session, in.conversationId(), "Adapter desconhecido: " + in.adapterId());
-            return;
-        }
-        if (!adapter.isAvailable()) {
-            sendError(session, in.conversationId(),
-                "Adapter '" + adapter.displayName() + "' indisponível no momento");
+        LlmAdapter adapter;
+        try {
+            adapter = chatService.resolveAdapter(in.adapterId());
+        } catch (Exception e) {
+            sendError(session, in.conversationId(), e.getMessage());
             return;
         }
 
@@ -116,9 +115,36 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         sendJson(session, WsMessages.OutStarted.of(conv.id(), adapter.id()));
 
-        // Snapshot do histórico anterior à mensagem atual.
-        var history = conv.messages().subList(0, conv.messages().size() - 1);
-        ChatRequest req = new ChatRequest(conv.id(), history, in.message(), null);
+        // Constrói o prompt em camadas via ChatService (mesmas regras do REST).
+        ChatRequestDto reqDto = new ChatRequestDto(
+            in.adapterId(),
+            conv.id(),
+            in.message(),
+            in.agentId(),
+            in.attachmentIds(),
+            in.jiraIssueKey()
+        );
+        String layeredPrompt;
+        try {
+            layeredPrompt = chatService.buildLayeredPrompt(reqDto);
+        } catch (Exception e) {
+            log.warn("Failed to build layered prompt", e);
+            sendError(session, conv.id(), "Erro ao montar prompt: " + e.getMessage());
+            return;
+        }
+
+        log.debug("Layered prompt length: {} chars (agent={}, attachments={}, jira={})",
+            layeredPrompt.length(),
+            in.agentId(),
+            in.attachmentIds() == null ? 0 : in.attachmentIds().size(),
+            in.jiraIssueKey());
+
+        ChatRequest req = new ChatRequest(
+            conv.id(),
+            Collections.emptyList(),
+            layeredPrompt,
+            null
+        );
 
         final String convId = conv.id();
         final LlmAdapter selectedAdapter = adapter;

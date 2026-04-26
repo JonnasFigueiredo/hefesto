@@ -103,11 +103,18 @@ export function useChatStream(): UseChatStream {
     const isLocalId = activeId.startsWith('local-')
     pendingLocalIdRef.current = isLocalId ? activeId : null
 
+    // Snapshot do contexto da conversa ativa.
+    const conv = state.conversations.find((c) => c.id === activeId)
+    const ctx = conv?.context
+
     clientRef.current?.send({
       type: 'start',
       adapterId: state.selectedAdapterId,
       conversationId: isLocalId ? null : activeId,
       message: text,
+      agentId: ctx?.agentId,
+      attachmentIds: ctx?.attachmentIds,
+      jiraIssueKey: ctx?.jiraIssueKey,
     })
   }
 

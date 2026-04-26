@@ -1,5 +1,10 @@
 import { create } from 'zustand'
-import type { Conversation, Message, MessageRole } from '@/types/chat'
+import type {
+  Conversation,
+  ConversationContext,
+  Message,
+  MessageRole,
+} from '@/types/chat'
 
 interface ChatState {
   conversations: Conversation[]
@@ -12,7 +17,10 @@ interface ChatState {
   setActive: (id: string | null) => void
 
   /** Cria uma nova conversa local (id provisório) e ativa. */
-  createConversation: (adapterId: string) => string
+  createConversation: (
+    adapterId: string,
+    initialContext?: Partial<ConversationContext>,
+  ) => string
 
   /** Garante que uma conversa exista; usado quando o backend retorna um id novo. */
   upsertConversation: (id: string, adapterId: string) => void
@@ -37,6 +45,13 @@ interface ChatState {
 
   removeConversation: (id: string) => void
 
+  // ---- Context manipulations ----
+
+  setAgent: (conversationId: string, agentId: string) => void
+  addAttachment: (conversationId: string, attachmentId: string) => void
+  removeAttachment: (conversationId: string, attachmentId: string) => void
+  setJiraIssue: (conversationId: string, key: string | null) => void
+
   clearAll: () => void
 }
 
@@ -45,6 +60,14 @@ const localId = () =>
 
 const messageId = () => localId().slice(0, 12)
 
+const defaultContext = (
+  partial?: Partial<ConversationContext>,
+): ConversationContext => ({
+  agentId: partial?.agentId ?? 'default',
+  attachmentIds: partial?.attachmentIds ?? [],
+  jiraIssueKey: partial?.jiraIssueKey ?? null,
+})
+
 export const useChatStore = create<ChatState>((set, get) => ({
   conversations: [],
   activeId: null,
@@ -52,16 +75,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   streamingMessageId: null,
 
   setSelectedAdapter: (id) => set({ selectedAdapterId: id }),
-
   setActive: (id) => set({ activeId: id }),
 
-  createConversation: (adapterId) => {
+  createConversation: (adapterId, initialContext) => {
     const id = `local-${localId().slice(0, 8)}`
     const now = Date.now()
     const conv: Conversation = {
       id,
       title: null,
       adapterId,
+      context: defaultContext(initialContext),
       createdAt: now,
       updatedAt: now,
       messages: [],
@@ -81,6 +104,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       id,
       title: null,
       adapterId,
+      context: defaultContext(),
       createdAt: now,
       updatedAt: now,
       messages: [],
@@ -174,7 +198,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((s) => ({
       conversations: s.conversations.map((c) => {
         if (c.id !== conversationId) return c
-        // Mantém o que já chegou. Marca meta com aborted=true.
         return {
           ...c,
           messages: c.messages.map((m) =>
@@ -196,7 +219,62 @@ export const useChatStore = create<ChatState>((set, get) => ({
     })
   },
 
-  clearAll: () => set({ conversations: [], activeId: null, streamingMessageId: null }),
+  setAgent: (conversationId, agentId) => {
+    set((s) => ({
+      conversations: s.conversations.map((c) =>
+        c.id === conversationId
+          ? { ...c, context: { ...c.context, agentId } }
+          : c,
+      ),
+    }))
+  },
+
+  addAttachment: (conversationId, attachmentId) => {
+    set((s) => ({
+      conversations: s.conversations.map((c) => {
+        if (c.id !== conversationId) return c
+        if (c.context.attachmentIds.includes(attachmentId)) return c
+        return {
+          ...c,
+          context: {
+            ...c.context,
+            attachmentIds: [...c.context.attachmentIds, attachmentId],
+          },
+        }
+      }),
+    }))
+  },
+
+  removeAttachment: (conversationId, attachmentId) => {
+    set((s) => ({
+      conversations: s.conversations.map((c) =>
+        c.id === conversationId
+          ? {
+              ...c,
+              context: {
+                ...c.context,
+                attachmentIds: c.context.attachmentIds.filter(
+                  (id) => id !== attachmentId,
+                ),
+              },
+            }
+          : c,
+      ),
+    }))
+  },
+
+  setJiraIssue: (conversationId, key) => {
+    set((s) => ({
+      conversations: s.conversations.map((c) =>
+        c.id === conversationId
+          ? { ...c, context: { ...c.context, jiraIssueKey: key } }
+          : c,
+      ),
+    }))
+  },
+
+  clearAll: () =>
+    set({ conversations: [], activeId: null, streamingMessageId: null }),
 }))
 
 /** Helper: obtém a conversa ativa. */
