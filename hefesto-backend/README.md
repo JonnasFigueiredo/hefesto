@@ -18,7 +18,7 @@
 
 ## Stack
 
-- **Java 18** (configuração do Eclipse local; Spring Boot 3 exige Java 17+).
+- **Java 17** (LTS, mínimo exigido pelo Spring Boot 3).
 - **Spring Boot 3.4** com `spring-boot-starter-web` e `spring-boot-starter-validation`. WebSocket entrará na Etapa 3 com `spring-boot-starter-websocket`.
 - **Maven** como build tool. O `pom.xml` herda do `spring-boot-starter-parent`.
 - **Jackson** (vem por dependência transitiva) pra serializar JSON.

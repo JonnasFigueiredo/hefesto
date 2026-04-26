@@ -173,7 +173,7 @@ Você expressou que quer poder **selecionar o CLI** (Claude Code hoje, talvez Ge
 
 | Camada | Tecnologia | Por quê |
 |--------|------------|---------|
-| Backend runtime | Java 18 | Versão configurada no Eclipse do projeto. Spring Boot 3.x exige Java 17+. |
+| Backend runtime | Java 17 | LTS suportada pelo Spring Boot 3.x. |
 | Backend framework | Spring Boot 3.4 | Ecossistema maduro, WebSocket nativo, fácil de integrar com Jira via `RestClient`. |
 | Build backend | Maven | Familiar, sem surpresas, integra bem com IDEs Java. |
 | LLM integration | Spawn de subprocesso (Claude Code CLI) | Mantém compatibilidade total com o `claude` que você já usa no terminal; permite trocar por outros CLIs sem mexer em SDK. |
@@ -246,7 +246,7 @@ Pastas marcadas com `[Etapa X]` ainda não existem — serão criadas conforme a
 
 | Ferramenta | Versão mínima | Como verificar |
 |------------|---------------|----------------|
-| Java JDK | 18 (mínimo 17) | `java -version` |
+| Java JDK | 17 (LTS) | `java -version` |
 | Maven | 3.9+ | `mvn -v` |
 | Node.js | 20 LTS+ | `node -v` |
 | npm | 10+ (vem com Node 20) | `npm -v` |
@@ -445,7 +445,7 @@ Suponha que você queira adicionar suporte ao Gemini CLI. Passos:
 ## Troubleshooting
 
 **`mvn spring-boot:run` falha com erro de versão de Java.**
-Confirme com `java -version` que está em 18 (ou 17+). Em macOS com várias versões: `export JAVA_HOME=$(/usr/libexec/java_home -v 18)`. No Windows, ajuste a variável de ambiente `JAVA_HOME` apontando pro JDK correto e `%JAVA_HOME%\bin` no PATH.
+Confirme com `java -version` que está em 17. Em macOS com várias versões: `export JAVA_HOME=$(/usr/libexec/java_home -v 17)`. No Windows, ajuste a variável de ambiente `JAVA_HOME` apontando pro JDK 17 e `%JAVA_HOME%\bin` no PATH.
 
 **`npm install` reclamando de versão do Node.**
 Use Node 20 LTS+. Com nvm: `nvm install 20 && nvm use 20`.

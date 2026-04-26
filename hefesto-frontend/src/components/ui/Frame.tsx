@@ -86,7 +86,7 @@ export function Frame({
         </div>
       )}
 
-      <div className={padded ? 'p-4' : ''}>{children}</div>
+      {padded ? <div className="p-4">{children}</div> : children}
     </div>
   )
 }

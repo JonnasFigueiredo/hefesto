@@ -1,0 +1,81 @@
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { Send } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { KBD } from '@/components/ui/KBD'
+
+interface ComposerProps {
+  onSend: (text: string) => void
+  disabled?: boolean
+  isSending?: boolean
+}
+
+export function Composer({ onSend, disabled = false, isSending = false }: ComposerProps) {
+  const [value, setValue] = useState('')
+  const taRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize do textarea (até 200px).
+  useEffect(() => {
+    const ta = taRef.current
+    if (!ta) return
+    ta.style.height = 'auto'
+    ta.style.height = `${Math.min(ta.scrollHeight, 200)}px`
+  }, [value])
+
+  const submit = () => {
+    const trimmed = value.trim()
+    if (!trimmed || disabled || isSending) return
+    onSend(trimmed)
+    setValue('')
+  }
+
+  const handleKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    const isModSubmit = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
+    if (isModSubmit) {
+      e.preventDefault()
+      submit()
+    }
+  }
+
+  return (
+    <div className="relative border border-[var(--border)] focus-within:border-[var(--accent-cyan)] focus-within:shadow-[0_0_0_1px_var(--accent-cyan),0_0_12px_rgba(0,212,255,0.2)] transition-all">
+      {/* corner brackets */}
+      <span aria-hidden className="pointer-events-none absolute -top-px -left-px h-3 w-3 border-t border-l border-[var(--accent-cyan)]" />
+      <span aria-hidden className="pointer-events-none absolute -top-px -right-px h-3 w-3 border-t border-r border-[var(--accent-cyan)]" />
+      <span aria-hidden className="pointer-events-none absolute -bottom-px -left-px h-3 w-3 border-b border-l border-[var(--accent-cyan)]" />
+      <span aria-hidden className="pointer-events-none absolute -bottom-px -right-px h-3 w-3 border-b border-r border-[var(--accent-cyan)]" />
+
+      <textarea
+        ref={taRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKey}
+        disabled={disabled || isSending}
+        rows={2}
+        placeholder={isSending ? '// AWAITING RESPONSE...' : '// TRANSMIT MESSAGE...'}
+        className="w-full px-4 py-3 bg-transparent text-[13px] text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none resize-none font-sans disabled:opacity-60"
+      />
+
+      <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border-dim)] font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
+        <div>
+          {value.length > 0 ? `${value.length} chars` : '// READY'}
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:flex items-center gap-1">
+            <KBD>⌘</KBD>
+            <span>+</span>
+            <KBD>⏎</KBD>
+          </span>
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={disabled || isSending || value.trim().length === 0}
+            onClick={submit}
+            icon={<Send size={12} strokeWidth={1.5} />}
+          >
+            {isSending ? 'SENDING' : 'TRANSMIT'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}

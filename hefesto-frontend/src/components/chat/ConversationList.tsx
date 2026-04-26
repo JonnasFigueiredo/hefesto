@@ -1,0 +1,115 @@
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { cn } from '@/lib/cn'
+import { useChatStore } from '@/store/chatStore'
+
+function timeAgo(ts: number): string {
+  const diff = Date.now() - ts
+  const s = Math.floor(diff / 1000)
+  if (s < 60) return `${s}s`
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h`
+  const d = Math.floor(h / 24)
+  return `${d}d`
+}
+
+export function ConversationList() {
+  const conversations = useChatStore((s) => s.conversations)
+  const activeId = useChatStore((s) => s.activeId)
+  const setActive = useChatStore((s) => s.setActive)
+  const removeConversation = useChatStore((s) => s.removeConversation)
+  const selectedAdapterId = useChatStore((s) => s.selectedAdapterId)
+  const createConversation = useChatStore((s) => s.createConversation)
+
+  const handleNew = () => {
+    if (!selectedAdapterId) return
+    createConversation(selectedAdapterId)
+  }
+
+  return (
+    <aside className="w-[280px] shrink-0 h-full flex flex-col border border-[var(--border-dim)] bg-[var(--bg-base)]/50">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-dim)]">
+        <h2 className="font-display uppercase tracking-[0.2em] text-[12px] text-[var(--text-dim)]">
+          SESSIONS
+        </h2>
+        <Button
+          variant="primary"
+          size="sm"
+          icon={<Plus size={12} strokeWidth={1.5} />}
+          onClick={handleNew}
+          disabled={!selectedAdapterId}
+        >
+          NEW
+        </Button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {conversations.length === 0 ? (
+          <div className="p-6 text-center font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
+            // NO ACTIVE SESSIONS
+          </div>
+        ) : (
+          <ul>
+            {conversations.map((c) => {
+              const isActive = c.id === activeId
+              return (
+                <li
+                  key={c.id}
+                  className={cn(
+                    'group relative border-b border-[var(--border-dim)]',
+                  )}
+                >
+                  <button
+                    onClick={() => setActive(c.id)}
+                    className={cn(
+                      'w-full text-left px-4 py-3 transition-colors',
+                      'hover:bg-[var(--bg-elevated)]',
+                      isActive && 'bg-[var(--bg-elevated)]',
+                    )}
+                  >
+                    {/* Active marker */}
+                    {isActive && (
+                      <span
+                        aria-hidden
+                        className="absolute left-0 top-0 bottom-0 w-[2px] bg-[var(--accent-cyan)]"
+                      />
+                    )}
+
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-mono text-[10px] text-[var(--accent-cyan)] tracking-[0.1em]">
+                        #{c.id.slice(0, 8)}
+                      </span>
+                      <span className="ml-auto font-mono text-[10px] text-[var(--text-muted)]">
+                        {timeAgo(c.updatedAt)}
+                      </span>
+                    </div>
+
+                    <div className="font-sans text-[12px] text-[var(--text)] line-clamp-2 mb-2">
+                      {c.title ?? <span className="text-[var(--text-muted)] italic">// untitled</span>}
+                    </div>
+
+                    <Badge variant={isActive ? 'cyan' : 'dim'}>{c.adapterId}</Badge>
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeConversation(c.id)
+                    }}
+                    aria-label="delete conversation"
+                    className="absolute top-3 right-3 p-1 text-[var(--text-muted)] hover:text-[var(--accent-magenta)] opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 size={12} strokeWidth={1.5} />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+    </aside>
+  )
+}

@@ -24,7 +24,7 @@ Um usuário, em modo local single-user (sem login), deve conseguir:
 ## Stack
 
 **Backend**
-- Java 18, Spring Boot 3.x, Maven
+- Java 17, Spring Boot 3.x, Maven
 - Spring Web + Spring WebSocket (streaming do chat)
 - Configuration Properties pra credenciais Jira/LLM
 - Sem banco no MVP — conversas em memória
@@ -276,13 +276,13 @@ Faça **nesta ordem**, parando ao final de cada etapa pra eu validar.
 
 ### Etapa 1 — Bootstrap + design system foundation
 
-1. **Backend**: Spring Boot 3, Java 18, Maven. Dep: `spring-boot-starter-web`. `HealthController` com `GET /api/health` → `{"status":"ok","ts":<epoch>}`. `CorsConfig` permitindo `http://localhost:5173`.
+1. **Backend**: Spring Boot 3, Java 17, Maven. Dep: `spring-boot-starter-web`. `HealthController` com `GET /api/health` → `{"status":"ok","ts":<epoch>}`. `CorsConfig` permitindo `http://localhost:5173`.
 2. **Frontend**: Vite + React + TS. Instalar Tailwind, configurar tema custom com os tokens listados acima. Importar Google Fonts (Rajdhani, JetBrains Mono, Inter) no `index.html`.
 3. **Theme files**: `theme/tokens.css` com CSS variables, `theme/globals.css` com reset + base body usando `bg-base` + grid background.
 4. **Componentes base** em `components/ui/`: implementar `Frame`, `Panel`, `Button`, `Input`, `Textarea`, `StatusDot`, `Badge`, `Spinner`, `KBD`, `GridBackground`, `ScanlineOverlay`. Cada um com props tipadas e variantes.
 5. **AppShell**: `Sidebar` (com logo, nav, system status placeholder), `TopBar` com relógio funcional. React Router com 3 rotas (`/chat`, `/jira`, `/settings`) — páginas placeholder mostrando `<Frame title="// CHAT">CHAT PAGE STUB</Frame>` etc.
 6. **Health integration**: SystemStatus na sidebar faz polling de `/api/health` a cada 10s e mostra StatusDot online/offline.
-7. **README.md** na raiz com pré-requisitos (Java 18+, Maven, Node 20+, Claude Code CLI), comandos pra rodar, screenshot text-art da estrutura.
+7. **README.md** na raiz com pré-requisitos (Java 17+, Maven, Node 20+, Claude Code CLI), comandos pra rodar, screenshot text-art da estrutura.
 8. Vite proxy `/api` → `localhost:8080`.
 9. Commit: `chore: bootstrap backend, design system and app shell`.
 

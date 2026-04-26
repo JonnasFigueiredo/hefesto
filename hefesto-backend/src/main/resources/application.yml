@@ -6,7 +6,21 @@ spring:
     name: hefesto-backend
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:default}
-    
+  config:
+    # Carrega application-local.yml se existir (gitignored, contém credenciais).
+    # 'optional:' impede falha caso o arquivo não exista (ex: rodando em CI).
+    import: optional:classpath:application-local.yml
+
+# Defaults seguros — sobrescritos por application-local.yml ou env vars.
+claude:
+  cli:
+    path: C:\Users\Jonnas\AppData\Roaming\npm\claude.cmd
+
+jira:
+  url: ${https://figsj.atlassian.net:}
+  email: ${jonnasrock@gmail.com:}
+  token: ${ATATT3xFfGF0MX1h8d60b4TgGKqBOvq61cDQF1TIxj572KerWq7sYm3PzcNLQHekMBgdIxQ-c9tNPwu0Nw6x_sdrD7JBZF0BS13bVs_HzoWl_iHHLv5W8cI2ovaxmMAoOTj-vYMa1U2_2PIdhckHKQBFWC4YJgleMm5ZIr480tVhavLq_-YYjAA=82B59AE8:}
+
 logging:
   level:
     root: INFO
