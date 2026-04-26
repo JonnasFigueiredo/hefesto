@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { cn } from '@/lib/cn'
 import type { Message } from '@/types/chat'
+import { MatrixLoader } from './MatrixLoader'
 
 interface MessageBubbleProps {
   message: Message
@@ -85,12 +86,15 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
           <span aria-hidden className="pointer-events-none absolute -bottom-px -left-px h-2 w-2 border-b border-l border-[var(--accent-cyan)]" />
           <span aria-hidden className="pointer-events-none absolute -bottom-px -right-px h-2 w-2 border-b border-r border-[var(--accent-cyan)]" />
 
-          <div className={cn('prose-hefesto', streaming && 'streaming-cursor')}>
-            {message.content.length === 0 && streaming && (
-              <span className="font-mono text-[12px] text-[var(--text-muted)]">
-                // awaiting first token
-              </span>
+          {message.content.length === 0 && streaming ? (
+            <MatrixLoader />
+          ) : (
+          <div
+            className={cn(
+              'prose-hefesto',
+              streaming && message.content.length > 0 && 'streaming-cursor',
             )}
+          >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -154,6 +158,7 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
               {message.content}
             </ReactMarkdown>
           </div>
+          )}
         </div>
       </div>
     </div>
