@@ -1,0 +1,76 @@
+{
+  "name": "hefesto-bridge",
+  "displayName": "Hefesto Bridge",
+  "description": "Local HTTP bridge that exposes VS Code Copilot models to the Hefesto backend.",
+  "version": "0.1.0",
+  "publisher": "hefesto",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "keywords": [
+    "hefesto",
+    "copilot",
+    "bridge",
+    "llm"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Hefesto Bridge",
+      "properties": {
+        "hefestoBridge.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Inicia o servidor HTTP local quando o VS Code abre."
+        },
+        "hefestoBridge.port": {
+          "type": "number",
+          "default": 35421,
+          "minimum": 1024,
+          "maximum": 65535,
+          "description": "Porta local em que o bridge escuta. Tem que bater com copilot.bridge.url do backend Hefesto."
+        },
+        "hefestoBridge.preferredFamily": {
+          "type": "string",
+          "default": "",
+          "description": "Família preferida (ex: 'claude-sonnet-4', 'gpt-4o'). Vazio = primeiro modelo disponível."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "hefestoBridge.restart",
+        "title": "Hefesto Bridge: Reiniciar servidor"
+      },
+      {
+        "command": "hefestoBridge.showStatus",
+        "title": "Hefesto Bridge: Mostrar status"
+      },
+      {
+        "command": "hefestoBridge.listModels",
+        "title": "Hefesto Bridge: Listar modelos disponíveis"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.2.0",
+    "typescript": "^5.6.2"
+  }
+}
