@@ -1,6 +1,6 @@
 # Hefesto Bridge — Extensão VS Code
 
-Ponte HTTP local entre o backend [Hefesto](../README.md) e os modelos do
+Ponte HTTP local entre o backend Hefesto e os modelos do
 **GitHub Copilot** disponíveis no VS Code via [Language Model API](https://code.visualstudio.com/api/extension-guides/language-model).
 
 A extensão **não tem UI** — ela apenas roda um servidor HTTP local em
