@@ -176,7 +176,20 @@ public class JiraClient {
     }
 
     private String basicAuthHeader() {
-        String creds = props.email() + ":" + props.token();
+        // Trim defensivo — pega whitespace invisível por copy-paste no YAML.
+        String email = props.email() == null ? "" : props.email().trim();
+        String token = props.token() == null ? "" : props.token().trim();
+
+        if (log.isDebugEnabled()) {
+            log.debug("Building basic auth: email='{}' (len={}) tokenPrefix='{}...' tokenSuffix='...{}' tokenLen={}",
+                email,
+                email.length(),
+                token.length() > 8 ? token.substring(0, 8) : token,
+                token.length() > 8 ? token.substring(token.length() - 8) : "",
+                token.length());
+        }
+
+        String creds = email + ":" + token;
         String encoded = Base64.getEncoder()
             .encodeToString(creds.getBytes(StandardCharsets.UTF_8));
         return "Basic " + encoded;

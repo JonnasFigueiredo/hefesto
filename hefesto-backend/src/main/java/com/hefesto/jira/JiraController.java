@@ -25,9 +25,11 @@ public class JiraController {
     private static final Logger log = LoggerFactory.getLogger(JiraController.class);
 
     private final JiraService service;
+    private final JiraProperties props;
 
-    public JiraController(JiraService service) {
+    public JiraController(JiraService service, JiraProperties props) {
         this.service = service;
+        this.props = props;
     }
 
     @GetMapping("/status")
@@ -35,6 +37,34 @@ public class JiraController {
         return Map.of(
             "configured", service.isConfigured()
         );
+    }
+
+    /**
+     * Endpoint diagnóstico — retorna o que está carregado em memória (tokens
+     * mascarados). Use pra confirmar que application-local.yml foi lido
+     * corretamente e que o restart do Spring pegou a config nova.
+     */
+    @GetMapping("/debug")
+    public Map<String, Object> debug() {
+        String url = props.url() == null ? "" : props.url();
+        String email = props.email() == null ? "" : props.email();
+        String token = props.token() == null ? "" : props.token();
+
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("url", url);
+        body.put("urlLen", url.length());
+        body.put("urlHasTrailingSlash", url.endsWith("/"));
+        body.put("email", email);
+        body.put("emailLen", email.length());
+        body.put("emailTrimmed", email.length() != email.trim().length());
+        body.put("tokenPrefix", token.length() > 8 ? token.substring(0, 8) : token);
+        body.put("tokenSuffix", token.length() > 8 ? token.substring(token.length() - 8) : "");
+        body.put("tokenLen", token.length());
+        body.put("tokenTrimmed", token.length() != token.trim().length());
+        body.put("tokenHasNewline", token.contains("\n") || token.contains("\r"));
+        body.put("tokenHasSpace", token.contains(" "));
+        body.put("configured", service.isConfigured());
+        return body;
     }
 
     @GetMapping("/myself")
