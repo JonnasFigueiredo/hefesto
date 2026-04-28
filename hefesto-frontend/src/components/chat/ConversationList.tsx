@@ -4,18 +4,6 @@ import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/cn'
 import { useChatStore } from '@/store/chatStore'
 
-function timeAgo(ts: number): string {
-  const diff = Date.now() - ts
-  const s = Math.floor(diff / 1000)
-  if (s < 60) return `${s}s`
-  const m = Math.floor(s / 60)
-  if (m < 60) return `${m}m`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h`
-  const d = Math.floor(h / 24)
-  return `${d}d`
-}
-
 export function ConversationList() {
   const conversations = useChatStore((s) => s.conversations)
   const activeId = useChatStore((s) => s.activeId)
@@ -81,9 +69,6 @@ export function ConversationList() {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-mono text-[10px] text-[var(--accent-cyan)] tracking-[0.1em]">
                         #{c.id.slice(0, 8)}
-                      </span>
-                      <span className="ml-auto font-mono text-[10px] text-[var(--text-muted)]">
-                        {timeAgo(c.updatedAt)}
                       </span>
                     </div>
 
