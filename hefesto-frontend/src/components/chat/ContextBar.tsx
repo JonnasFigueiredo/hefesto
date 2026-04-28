@@ -28,13 +28,9 @@ export function ContextBar() {
   const agentIsCustom = agent && agent.id !== 'default'
 
   return (
-    <div className="flex flex-col gap-2 px-4 py-3 border-b border-[var(--border-dim)] bg-[rgba(0,212,255,0.02)]">
+    <div className="flex flex-col gap-2 px-4 py-3 border-t border-[var(--border-dim)] bg-[rgba(0,212,255,0.02)]">
       {/* Linha 1: agente + ações */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.2em]">
-          // CONTEXTO:
-        </span>
-
         <AgentSelector />
 
         <AttachmentPicker />

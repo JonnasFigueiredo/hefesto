@@ -59,7 +59,7 @@ export function AgentSelector() {
       </button>
 
       {open && agents && (
-        <div className="absolute top-9 right-0 z-50 w-[360px] bg-[var(--bg-base)] border border-[var(--accent-cyan)] shadow-[0_0_24px_rgba(0,212,255,0.15)]">
+        <div className="absolute bottom-9 right-0 z-50 w-[360px] bg-[var(--bg-base)] border border-[var(--accent-cyan)] shadow-[0_0_24px_rgba(0,212,255,0.15)]">
           {/* corner brackets */}
           <span aria-hidden className="pointer-events-none absolute -top-px -left-px h-3 w-3 border-t border-l border-[var(--accent-cyan)]" />
           <span aria-hidden className="pointer-events-none absolute -top-px -right-px h-3 w-3 border-t border-r border-[var(--accent-cyan)]" />

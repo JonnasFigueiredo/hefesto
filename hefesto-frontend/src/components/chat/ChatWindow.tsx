@@ -68,9 +68,6 @@ export function ChatWindow() {
         )}
       </div>
 
-      {/* Context bar — agent + attachments + jira issue */}
-      {conv && <ContextBar />}
-
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 min-h-0">
         <MessageList
@@ -93,8 +90,11 @@ export function ChatWindow() {
         </div>
       )}
 
+      {/* Context bar — agent + attachments + jira issue (logo acima do composer) */}
+      {conv && <ContextBar />}
+
       {/* Composer */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 pt-3">
         <Composer
           onSend={onSend}
           onAbort={abort}
