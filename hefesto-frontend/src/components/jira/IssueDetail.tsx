@@ -15,9 +15,9 @@ interface Props {
 }
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'description', label: 'DESCRIPTION' },
-  { id: 'acceptance', label: 'ACCEPTANCE' },
-  { id: 'comments', label: 'COMMENTS' },
+  { id: 'description', label: 'DESCRIÇÃO' },
+  { id: 'acceptance', label: 'ACEITE' },
+  { id: 'comments', label: 'COMENTÁRIOS' },
   { id: 'meta', label: 'META' },
 ]
 
@@ -25,7 +25,7 @@ function formatDate(ts: number): string {
   if (!ts) return '—'
   const d = new Date(ts)
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 export function IssueDetail({ issue, onSendToChat }: Props) {
@@ -67,7 +67,7 @@ export function IssueDetail({ issue, onSendToChat }: Props) {
           onClick={() => onSendToChat?.(issue)}
           disabled={!onSendToChat}
         >
-          SEND TO CHAT
+          ENVIAR PRO CHAT
         </Button>
         {issue.url && (
           <a
@@ -77,7 +77,7 @@ export function IssueDetail({ issue, onSendToChat }: Props) {
             className="inline-flex items-center gap-2 h-7 px-3 text-[11px] font-display uppercase tracking-[0.15em] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] transition-colors"
           >
             <ExternalLink size={12} strokeWidth={1.5} />
-            OPEN IN JIRA
+            ABRIR NO JIRA
           </a>
         )}
       </div>
@@ -140,7 +140,7 @@ function DescriptionTab({ markdown }: { markdown: string | null }) {
   if (!markdown) {
     return (
       <div className="font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-        // NO DESCRIPTION
+        // SEM DESCRIÇÃO
       </div>
     )
   }
@@ -209,7 +209,7 @@ function AcceptanceTab({ criteria }: { criteria: string[] }) {
   if (criteria.length === 0) {
     return (
       <div className="font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-        // NO ACCEPTANCE CRITERIA DETECTED
+        // NENHUM CRITÉRIO DE ACEITE DETECTADO
         <div className="mt-2 normal-case tracking-normal">
           {'(o backend procura por seções "critérios de aceite" / "acceptance criteria" na descrição)'}
         </div>
@@ -232,7 +232,7 @@ function CommentsTab({ issue }: { issue: JiraIssue }) {
   if (issue.comments.length === 0) {
     return (
       <div className="font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-        // NO COMMENTS
+        // SEM COMENTÁRIOS
       </div>
     )
   }
@@ -265,15 +265,15 @@ function CommentsTab({ issue }: { issue: JiraIssue }) {
 function MetaTab({ issue }: { issue: JiraIssue }) {
   const rows: { label: string; value: string }[] = [
     { label: 'KEY', value: issue.key },
-    { label: 'TYPE', value: issue.issueType ?? '—' },
-    { label: 'PRIORITY', value: issue.priority ?? '—' },
+    { label: 'TIPO', value: issue.issueType ?? '—' },
+    { label: 'PRIORIDADE', value: issue.priority ?? '—' },
     { label: 'STATUS', value: issue.status?.name ?? '—' },
-    { label: 'ASSIGNEE', value: issue.assignee?.displayName ?? '— UNASSIGNED' },
-    { label: 'REPORTER', value: issue.reporter?.displayName ?? '—' },
+    { label: 'RESPONSÁVEL', value: issue.assignee?.displayName ?? '— SEM RESPONSÁVEL' },
+    { label: 'RELATOR', value: issue.reporter?.displayName ?? '—' },
     { label: 'SPRINT', value: issue.sprint ?? '—' },
     { label: 'LABELS', value: issue.labels.length ? issue.labels.join(', ') : '—' },
-    { label: 'CREATED', value: formatDate(issue.created) },
-    { label: 'UPDATED', value: formatDate(issue.updated) },
+    { label: 'CRIADO EM', value: formatDate(issue.created) },
+    { label: 'ATUALIZADO EM', value: formatDate(issue.updated) },
   ]
   return (
     <table className="w-full font-mono text-[11px]">

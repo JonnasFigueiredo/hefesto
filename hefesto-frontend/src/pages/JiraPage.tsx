@@ -47,28 +47,28 @@ export function JiraPage() {
         <h1 className="font-display text-2xl uppercase tracking-[0.25em] text-[var(--accent-cyan)] glow-cyan">
           JIRA
         </h1>
-        <Badge variant="cyan">STAGE 4 // READ</Badge>
+        <Badge variant="cyan">ETAPA 4 // LEITURA</Badge>
         {isConfigured ? (
-          <Badge variant="green">CONNECTED</Badge>
+          <Badge variant="green">CONECTADO</Badge>
         ) : status.isLoading ? (
-          <Badge variant="dim">CHECKING...</Badge>
+          <Badge variant="dim">VERIFICANDO...</Badge>
         ) : (
-          <Badge variant="magenta">NOT CONFIGURED</Badge>
+          <Badge variant="magenta">NÃO CONFIGURADO</Badge>
         )}
       </div>
 
       {!isConfigured && !status.isLoading && (
-        <Frame variant="danger" title="// JIRA NOT CONFIGURED">
+        <Frame variant="danger" title="// JIRA NÃO CONFIGURADO">
           <div className="font-sans text-[13px] text-[var(--text-dim)] mb-3">
-            Configure as credenciais Jira em <code className="font-mono text-[12px] text-[var(--accent-cyan)]">application-local.yml</code> ou
-            via env vars (<code className="font-mono text-[12px]">JIRA_URL</code>, <code className="font-mono text-[12px]">JIRA_EMAIL</code>, <code className="font-mono text-[12px]">JIRA_TOKEN</code>),
-            depois reinicie o backend.
+            Configure as credenciais do Jira em <code className="font-mono text-[12px] text-[var(--accent-cyan)]">application-local.yml</code> ou
+            via variáveis de ambiente (<code className="font-mono text-[12px]">JIRA_URL</code>, <code className="font-mono text-[12px]">JIRA_EMAIL</code>, <code className="font-mono text-[12px]">JIRA_TOKEN</code>)
+            e reinicie o backend.
           </div>
           <Link
             to="/settings"
             className="inline-block font-display uppercase tracking-[0.15em] text-[12px] text-[var(--accent-cyan)] hover:underline"
           >
-            // GO TO SETTINGS →
+            // IR PARA CONFIGURAÇÕES →
           </Link>
         </Frame>
       )}
@@ -76,7 +76,7 @@ export function JiraPage() {
       {isConfigured && (
         <div className="flex-1 grid grid-cols-[minmax(380px,2fr)_3fr] gap-4 min-h-0">
           {/* Coluna esquerda: busca + lista */}
-          <Frame title="// QUERY" className="flex flex-col" padded={false}>
+          <Frame title="// CONSULTA" className="flex flex-col" padded={false}>
             <div className="p-4 border-b border-[var(--border-dim)]">
               <JqlSearchBar
                 initialJql={jql}
@@ -103,7 +103,7 @@ export function JiraPage() {
           </Frame>
 
           {/* Coluna direita: detalhe */}
-          <Frame title="// ISSUE" className="flex flex-col" padded={false}>
+          <Frame title="// HISTÓRIA" className="flex flex-col" padded={false}>
             <div className="p-5 flex-1 min-h-0 overflow-hidden">
               {!activeKey ? (
                 <EmptyState />
@@ -129,7 +129,7 @@ function EmptyState() {
     <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-12">
       <BeetleMascot size={140} className="opacity-40" />
       <div className="font-mono text-[12px] text-[var(--text-dim)] uppercase tracking-[0.18em]">
-        // SELECT AN ISSUE TO INSPECT
+        // SELECIONE UMA HISTÓRIA PARA INSPECIONAR
       </div>
       <div className="font-mono text-[10px] text-[var(--text-muted)] max-w-md">
         Use a barra de busca ou clique em uma das sugestões rápidas (MEUS, EM PROGRESSO, etc.)
@@ -156,7 +156,7 @@ function DetailLoading() {
 function DetailError({ message }: { message: string }) {
   return (
     <div className="border border-[var(--accent-magenta)] p-4 font-mono text-[11px] text-[var(--accent-magenta)]">
-      // ERROR // {message}
+      // ERRO // {message}
     </div>
   )
 }

@@ -35,7 +35,7 @@ export function AttachmentsList() {
         <div
           key={a.id}
           className="group inline-flex items-center gap-2 px-2 py-1 border border-[var(--border-dim)] hover:border-[var(--accent-cyan)] transition-colors"
-          title="Click no X pra desanexar; Shift+X pra deletar do servidor"
+          title="Clique no X para desanexar; Shift+clique para deletar do servidor"
         >
           <FileText size={12} strokeWidth={1.5} className="text-[var(--accent-cyan)]" />
           <span className="font-mono text-[11px] text-[var(--text)] max-w-[180px] truncate">

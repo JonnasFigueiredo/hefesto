@@ -15,7 +15,7 @@ export function ThinkingIndicator() {
         ))}
       </div>
       <span className="font-mono text-[10px] text-[var(--text-dim)] tracking-[0.2em] uppercase">
-        // PROCESSING
+        // PROCESSANDO
       </span>
     </div>
   )

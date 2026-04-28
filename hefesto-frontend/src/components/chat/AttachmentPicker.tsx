@@ -21,7 +21,7 @@ export function AttachmentPicker() {
 
   const handleFiles = async (files: FileList | File[]) => {
     if (!conv) {
-      setError('Crie uma sessão antes de anexar arquivos')
+      setError('Crie uma sessão antes de anexar arquivos.')
       return
     }
     setError(null)
@@ -30,7 +30,7 @@ export function AttachmentPicker() {
         const att = await upload.mutateAsync(file)
         addAttachment(conv.id, att.id)
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'falha no upload')
+        setError(e instanceof Error ? e.message : 'falha ao enviar arquivo')
       }
     }
   }
@@ -84,17 +84,17 @@ export function AttachmentPicker() {
           'disabled:opacity-40 disabled:cursor-not-allowed',
           'font-display uppercase tracking-[0.15em] text-[11px]',
         )}
-        title="Anexar arquivos (.txt, .md, .json, .yml). Ou arraste e solte."
+        title="Anexar arquivos (.txt, .md, .json, .yml). Ou arraste e solte na tela."
       >
         {upload.isPending ? (
           <>
             <Upload size={12} strokeWidth={1.5} className="animate-pulse" />
-            UPLOADING
+            ENVIANDO
           </>
         ) : (
           <>
             <Paperclip size={12} strokeWidth={1.5} />
-            ATTACH
+            ANEXAR
           </>
         )}
       </button>
@@ -108,7 +108,7 @@ export function AttachmentPicker() {
           }}
         >
           <div className="bg-[var(--bg-base)] border-2 border-dashed border-[var(--accent-cyan)] px-8 py-6 font-display uppercase tracking-[0.2em] text-[14px] text-[var(--accent-cyan)]">
-            // DROP TO ATTACH
+            // SOLTE PARA ANEXAR
           </div>
         </div>
       )}
@@ -120,7 +120,7 @@ export function AttachmentPicker() {
             onClick={() => setError(null)}
             className="ml-2 underline"
           >
-            DISMISS
+            FECHAR
           </button>
         </div>
       )}

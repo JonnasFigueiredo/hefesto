@@ -27,7 +27,7 @@ export function IssueList({
   if (isError) {
     return (
       <div className="border border-[var(--accent-magenta)] p-4 font-mono text-[11px] text-[var(--accent-magenta)]">
-        // ERROR // {errorMessage ?? 'failed to load issues'}
+        // ERRO // {errorMessage ?? 'falha ao carregar histórias'}
       </div>
     )
   }
@@ -35,7 +35,7 @@ export function IssueList({
   if (issues.length === 0) {
     return (
       <div className="text-center py-12 font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-        // NO ISSUES MATCHED
+        // NENHUM RESULTADO
       </div>
     )
   }
@@ -43,9 +43,9 @@ export function IssueList({
   return (
     <div className="flex flex-col gap-2">
       <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-        <span>// {issues.length} ISSUE{issues.length === 1 ? '' : 'S'}</span>
+        <span>// {issues.length} HISTÓRIA{issues.length === 1 ? '' : 'S'}</span>
         {!isLast && (
-          <span className="text-[var(--accent-amber)]">// HAS MORE PAGES</span>
+          <span className="text-[var(--accent-amber)]">// HÁ MAIS PÁGINAS</span>
         )}
       </div>
       {issues.map((issue) => (

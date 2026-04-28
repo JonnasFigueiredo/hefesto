@@ -60,7 +60,7 @@ export function IssueCard({ issue, active = false, onClick }: Props) {
 
       <div className="flex items-center gap-3 font-mono text-[10px] text-[var(--text-muted)]">
         <span className="truncate">
-          {issue.assignee?.displayName ?? '— UNASSIGNED'}
+          {issue.assignee?.displayName ?? '— SEM RESPONSÁVEL'}
         </span>
         {issue.priority && (
           <span className="text-[var(--text-dim)]">{issue.priority}</span>

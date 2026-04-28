@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { MessageSquare, GitBranch, Settings } from 'lucide-react'
+import { MessageSquare, GitBranch } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { SystemStatus } from './SystemStatus'
 
@@ -9,10 +9,11 @@ interface NavItem {
   icon: typeof MessageSquare
 }
 
+// Settings removido da nav do sidebar — uso interno apenas.
+// Rota /settings continua acessível direto pela URL pra debug/admin.
 const NAV: NavItem[] = [
   { to: '/chat', label: 'CHAT', icon: MessageSquare },
   { to: '/jira', label: 'JIRA', icon: GitBranch },
-  { to: '/settings', label: 'SETTINGS', icon: Settings },
 ]
 
 export function Sidebar() {
@@ -22,9 +23,6 @@ export function Sidebar() {
       <div className="px-5 py-6 border-b border-[var(--border-dim)]">
         <div className="font-display text-[22px] font-semibold uppercase tracking-[0.3em] text-[var(--accent-cyan)] glow-cyan">
           [ HEFESTO ]
-        </div>
-        <div className="mt-1 font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
-          // JIRA × LLM CONSOLE
         </div>
       </div>
 

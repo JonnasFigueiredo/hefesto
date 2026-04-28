@@ -12,7 +12,7 @@ interface Props {
  *  - done          → verde
  */
 export function JiraStatusBadge({ status }: Props) {
-  if (!status) return <Badge variant="dim">UNKNOWN</Badge>
+  if (!status) return <Badge variant="dim">DESCONHECIDO</Badge>
 
   const variant =
     status.category === 'done'

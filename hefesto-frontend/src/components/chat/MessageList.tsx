@@ -30,10 +30,10 @@ export function MessageList({
     (  o o  )
     /   |   \\
    (___|___)__
-   READY TO CHAT`}
+   PRONTO PRO CHAT`}
         </pre>
         <div className="font-mono text-[12px] text-[var(--text-dim)]">
-          // TYPE A MESSAGE TO BEGIN TRANSMISSION
+          // DIGITE UMA MENSAGEM PARA INICIAR A TRANSMISSÃO
         </div>
       </div>
     )

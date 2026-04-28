@@ -13,7 +13,7 @@ export function ChatPage() {
         <h1 className="font-display text-2xl uppercase tracking-[0.25em] text-[var(--accent-cyan)] glow-cyan">
           CHAT
         </h1>
-        <Badge variant="cyan">STAGE 2 // SYNC</Badge>
+        <Badge variant="cyan">ETAPA 2 // SÍNCRONO</Badge>
       </div>
 
       <div className="flex-1 flex gap-4 min-h-0">

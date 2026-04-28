@@ -30,7 +30,7 @@ export function AgentSelector() {
   if (isLoading) {
     return (
       <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em] px-3 py-1 border border-[var(--border-dim)]">
-        // LOADING AGENTS
+        // CARREGANDO AGENTES
       </div>
     )
   }
@@ -49,7 +49,7 @@ export function AgentSelector() {
       >
         <Sparkles size={12} strokeWidth={1.5} className="text-[var(--accent-cyan)]" />
         <span className="font-display uppercase tracking-[0.15em] text-[11px] text-[var(--text)]">
-          {selected?.emoji ? `${selected.emoji} ` : ''}{selected?.name ?? 'AGENT'}
+          {selected?.emoji ? `${selected.emoji} ` : ''}{selected?.name ?? 'AGENTE'}
         </span>
         <ChevronDown
           size={12}
@@ -67,7 +67,7 @@ export function AgentSelector() {
           <span aria-hidden className="pointer-events-none absolute -bottom-px -right-px h-3 w-3 border-b border-r border-[var(--accent-cyan)]" />
 
           <div className="px-3 py-2 border-b border-[var(--border-dim)] font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.2em]">
-            // SELECT SPECIALIST AGENT
+            // SELECIONE UM AGENTE ESPECIALISTA
           </div>
 
           <ul className="max-h-[480px] overflow-y-auto">

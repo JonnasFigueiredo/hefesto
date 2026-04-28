@@ -24,7 +24,7 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
       <div className="flex justify-end">
         <div className="max-w-[70%]">
           <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em] mb-1 text-right">
-            USER // {time}
+            VOCÊ // {time}
           </div>
           <div className="bg-[var(--bg-overlay)] border-r-2 border-r-[var(--accent-cyan)] border-t border-b border-l border-[var(--border-dim)] px-4 py-3 text-[13px] text-[var(--text)] whitespace-pre-wrap leading-relaxed">
             {message.content}
@@ -39,7 +39,7 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
       <div className="w-full">
         <div className="relative border border-[var(--border-dim)]">
           <div className="absolute -top-2 left-3 px-2 bg-[var(--bg-base)] font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">
-            {message.role === 'jira_context' ? '// JIRA CONTEXT INJECTED' : '// SYSTEM'}
+            {message.role === 'jira_context' ? '// CONTEXTO JIRA INJETADO' : '// SISTEMA'}
           </div>
           <pre className="px-4 py-4 font-mono text-[11px] text-[var(--text-dim)] whitespace-pre-wrap break-words leading-relaxed">
             {message.content}
@@ -72,7 +72,7 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
             </span>
           )}
           {meta?.aborted && (
-            <span className="text-[var(--accent-magenta)]">ABORTED</span>
+            <span className="text-[var(--accent-magenta)]">ABORTADO</span>
           )}
         </div>
         <div

@@ -21,12 +21,12 @@ export function ChatWindow() {
     send(text)
   }
 
-  const wsLabel = wsState === 'open' ? 'CONNECTED' : wsState === 'connecting' ? 'CONNECTING' : 'OFFLINE'
+  const wsLabel = wsState === 'open' ? 'CONECTADO' : wsState === 'connecting' ? 'CONECTANDO' : 'OFFLINE'
   const wsStatus = wsState === 'open' ? 'online' : wsState === 'connecting' ? 'pending' : 'offline'
 
   return (
     <Frame
-      title={conv ? `// SESSION ${conv.id.slice(0, 8).toUpperCase()}` : '// SESSION'}
+      title={conv ? `// SESSÃO ${conv.id.slice(0, 8).toUpperCase()}` : '// SESSÃO'}
       className="flex-1 flex flex-col"
       padded={false}
     >
@@ -35,11 +35,11 @@ export function ChatWindow() {
         <div className="flex-1 min-w-0">
           {conv ? (
             <div className="font-sans text-[13px] text-[var(--text)] truncate">
-              {conv.title ?? <span className="text-[var(--text-muted)] italic">// untitled session</span>}
+              {conv.title ?? <span className="text-[var(--text-muted)] italic">// sessão sem título</span>}
             </div>
           ) : (
             <div className="font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-              // NO SESSION SELECTED
+              // NENHUMA SESSÃO SELECIONADA
             </div>
           )}
         </div>
@@ -60,10 +60,10 @@ export function ChatWindow() {
             size="sm"
             icon={<Trash2 size={12} strokeWidth={1.5} />}
             onClick={() => removeConversation(conv.id)}
-            aria-label="clear session"
+            aria-label="limpar sessão"
             disabled={isStreaming}
           >
-            CLEAR
+            LIMPAR
           </Button>
         )}
       </div>
@@ -83,12 +83,12 @@ export function ChatWindow() {
       {/* Error banner */}
       {error && (
         <div className="mx-4 mb-3 border border-[var(--accent-magenta)] px-3 py-2 font-mono text-[11px] text-[var(--accent-magenta)] flex items-center gap-3">
-          <span className="flex-1">// ERROR :: {error}</span>
+          <span className="flex-1">// ERRO :: {error}</span>
           <button
             onClick={clearError}
             className="text-[var(--accent-magenta)] hover:text-[var(--text)] uppercase tracking-[0.18em] text-[10px]"
           >
-            DISMISS
+            FECHAR
           </button>
         </div>
       )}

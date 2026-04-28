@@ -33,7 +33,7 @@ export function ConversationList() {
     <aside className="w-[280px] shrink-0 h-full flex flex-col border border-[var(--border-dim)] bg-[var(--bg-base)]/50">
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-dim)]">
         <h2 className="font-display uppercase tracking-[0.2em] text-[12px] text-[var(--text-dim)]">
-          SESSIONS
+          SESSÕES
         </h2>
         <Button
           variant="primary"
@@ -42,14 +42,14 @@ export function ConversationList() {
           onClick={handleNew}
           disabled={!selectedAdapterId}
         >
-          NEW
+          NOVA
         </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {conversations.length === 0 ? (
           <div className="p-6 text-center font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-            // NO ACTIVE SESSIONS
+            // NENHUMA SESSÃO ATIVA
           </div>
         ) : (
           <ul>
@@ -88,7 +88,7 @@ export function ConversationList() {
                     </div>
 
                     <div className="font-sans text-[12px] text-[var(--text)] line-clamp-2 mb-2">
-                      {c.title ?? <span className="text-[var(--text-muted)] italic">// untitled</span>}
+                      {c.title ?? <span className="text-[var(--text-muted)] italic">// sem título</span>}
                     </div>
 
                     <Badge variant={isActive ? 'cyan' : 'dim'}>{c.adapterId}</Badge>

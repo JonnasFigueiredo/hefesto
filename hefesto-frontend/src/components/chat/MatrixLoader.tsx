@@ -29,7 +29,7 @@ export function MatrixLoader() {
           style={{ boxShadow: '0 0 8px rgba(0,255,159,0.8)' }}
         />
         <span style={{ textShadow: '0 0 6px rgba(0,255,159,0.5)' }}>
-          DECRYPTING TRANSMISSION
+          DECIFRANDO TRANSMISSÃO
         </span>
         <span className="ml-auto text-[var(--text-muted)]">
           {String((tick * 3) % 9999).padStart(4, '0')}
@@ -82,9 +82,9 @@ export function MatrixLoader() {
 
       {/* Footer status row */}
       <div className="flex items-center gap-3 mt-2 text-[9px] tracking-[0.25em] text-[var(--text-muted)]">
-        <span>// CHANNEL OPEN</span>
+        <span>// CANAL ABERTO</span>
         <span className="flex-1 border-t border-dashed border-[var(--border-dim)]" />
-        <span>{NUM_CELLS} BLOCKS</span>
+        <span>{NUM_CELLS} BLOCOS</span>
       </div>
     </div>
   )

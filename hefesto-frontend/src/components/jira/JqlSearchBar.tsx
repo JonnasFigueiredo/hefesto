@@ -48,13 +48,13 @@ export function JqlSearchBar({ initialJql = '', onExecute, isLoading }: Props) {
           size="md"
           disabled={isLoading || jql.trim().length === 0}
         >
-          {isLoading ? 'EXECUTING...' : 'EXECUTE'}
+          {isLoading ? 'EXECUTANDO...' : 'EXECUTAR'}
         </Button>
       </form>
 
       <div className="flex flex-wrap gap-2">
         <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em] py-1">
-          // QUICK:
+          // ATALHOS:
         </span>
         {SUGGESTIONS.map((s) => (
           <button

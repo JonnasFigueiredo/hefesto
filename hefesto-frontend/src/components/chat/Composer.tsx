@@ -62,10 +62,10 @@ export function Composer({
         rows={2}
         placeholder={
           isStreaming
-            ? '// STREAMING IN PROGRESS — STOP TO INTERRUPT'
+            ? '// STREAMING EM ANDAMENTO — PARAR PARA INTERROMPER'
             : isSending
-              ? '// AWAITING RESPONSE...'
-              : '// TRANSMIT MESSAGE...'
+              ? '// AGUARDANDO RESPOSTA...'
+              : '// DIGITE SUA MENSAGEM...'
         }
         className="w-full px-4 py-3 bg-transparent text-[13px] text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none resize-none font-sans disabled:opacity-60"
       />
@@ -73,10 +73,10 @@ export function Composer({
       <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border-dim)] font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
         <div>
           {isStreaming
-            ? '// LIVE'
+            ? '// AO VIVO'
             : value.length > 0
-              ? `${value.length} chars`
-              : '// READY'}
+              ? `${value.length} caracteres`
+              : '// PRONTO'}
         </div>
         <div className="flex items-center gap-3">
           {!isStreaming && (
@@ -93,7 +93,7 @@ export function Composer({
               onClick={onAbort}
               icon={<Square size={12} strokeWidth={1.5} fill="currentColor" />}
             >
-              STOP
+              PARAR
             </Button>
           ) : (
             <Button
@@ -103,7 +103,7 @@ export function Composer({
               onClick={submit}
               icon={<Send size={12} strokeWidth={1.5} />}
             >
-              {isSending ? 'SENDING' : 'TRANSMIT'}
+              {isSending ? 'ENVIANDO' : 'ENVIAR'}
             </Button>
           )}
         </div>

@@ -14,44 +14,44 @@ export function SettingsPage() {
     <div className="h-full flex flex-col gap-6 max-w-4xl">
       <div className="flex items-center gap-3">
         <h1 className="font-display text-2xl uppercase tracking-[0.25em] text-[var(--accent-cyan)] glow-cyan">
-          SETTINGS
+          CONFIGURAÇÕES
         </h1>
-        <Badge variant="dim">STAGE 1 // STUB</Badge>
+        <Badge variant="dim">USO INTERNO</Badge>
       </div>
 
-      <Frame title="// SYSTEM">
+      <Frame title="// SISTEMA">
         <div className="grid grid-cols-2 gap-3 font-mono text-[12px]">
-          <div className="text-[var(--text-muted)]">BACKEND STATUS</div>
+          <div className="text-[var(--text-muted)]">STATUS DO BACKEND</div>
           <div className="flex items-center gap-2">
             <StatusDot status={status} />
             <span className="text-[var(--text)]">{status.toUpperCase()}</span>
           </div>
-          <div className="text-[var(--text-muted)]">SERVICE</div>
+          <div className="text-[var(--text-muted)]">SERVIÇO</div>
           <div className="text-[var(--text)]">{data?.service ?? '—'}</div>
-          <div className="text-[var(--text-muted)]">VERSION</div>
+          <div className="text-[var(--text-muted)]">VERSÃO</div>
           <div className="text-[var(--text)]">{data?.version ?? '—'}</div>
         </div>
       </Frame>
 
-      <Frame title="// LLM ADAPTERS">
+      <Frame title="// ADAPTERS LLM">
         <Panel className="font-mono text-[11px] text-[var(--text-dim)]">
-          // ADAPTER REGISTRY ACTIVATES IN STAGE 2
+          // CONFIGURADO VIA application-local.yml
         </Panel>
       </Frame>
 
-      <Frame title="// JIRA CONNECTION">
+      <Frame title="// CONEXÃO JIRA">
         <div className="space-y-3">
           <div>
             <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">
-              JIRA URL
+              URL DO JIRA
             </label>
-            <Input mono placeholder="https://yourcompany.atlassian.net" disabled />
+            <Input mono placeholder="https://suaempresa.atlassian.net" disabled />
           </div>
           <div>
             <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">
               EMAIL
             </label>
-            <Input mono placeholder="you@company.com" disabled />
+            <Input mono placeholder="voce@empresa.com" disabled />
           </div>
           <div>
             <label className="block font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">
@@ -61,18 +61,18 @@ export function SettingsPage() {
           </div>
           <div className="pt-2">
             <Button variant="primary" disabled>
-              TEST CONNECTION
+              TESTAR CONEXÃO
             </Button>
             <span className="ml-3 font-mono text-[10px] text-[var(--text-muted)]">
-              // ENABLED IN STAGE 4
+              // EDITE application-local.yml E REINICIE O BACKEND
             </span>
           </div>
         </div>
       </Frame>
 
-      <Frame title="// APPEARANCE">
+      <Frame title="// APARÊNCIA">
         <Panel className="font-mono text-[11px] text-[var(--text-dim)]">
-          // SCANLINE / GLOW INTENSITY / CRT TOGGLE — COMING SOON
+          // SCANLINE / INTENSIDADE DE GLOW / CRT — EM BREVE
         </Panel>
       </Frame>
     </div>

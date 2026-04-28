@@ -32,7 +32,7 @@ export function ContextBar() {
       {/* Linha 1: agente + ações */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.2em]">
-          // CONTEXT:
+          // CONTEXTO:
         </span>
 
         <AgentSelector />
@@ -95,7 +95,7 @@ export function ContextBar() {
           <button
             onClick={() => setEditingKey(true)}
             className="inline-flex items-center gap-2 px-2 h-7 border border-[var(--border)] hover:border-[var(--accent-amber)] hover:text-[var(--accent-amber)] text-[var(--text-dim)] transition-colors font-display uppercase tracking-[0.15em] text-[11px]"
-            title="Anexar issue Jira por KEY"
+            title="Anexar issue do Jira pela KEY"
           >
             <Plus size={12} strokeWidth={1.5} />
             JIRA
@@ -106,7 +106,7 @@ export function ContextBar() {
         {agentIsCustom && agent && (
           <div className="ml-auto flex items-center gap-2 font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
             <Sparkles size={11} strokeWidth={1.5} className="text-[var(--accent-cyan)]" />
-            <span>// PERSONA ACTIVE</span>
+            <span>// PERSONA ATIVA</span>
           </div>
         )}
       </div>
@@ -117,7 +117,7 @@ export function ContextBar() {
       {/* Linha 3: hint de ajuda quando não há contexto extra */}
       {!hasContext && !agentIsCustom && (
         <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.15em]">
-          // SELECT AN AGENT, ATTACH FILES OR LINK A JIRA ISSUE TO ENRICH THE CONTEXT
+          // SELECIONE UM AGENTE, ANEXE ARQUIVOS OU VINCULE UMA ISSUE DO JIRA PARA ENRIQUECER O CONTEXTO
         </div>
       )}
     </div>
