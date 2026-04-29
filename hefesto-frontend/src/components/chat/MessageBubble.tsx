@@ -3,6 +3,7 @@ import remarkGfm from 'remark-gfm'
 import { cn } from '@/lib/cn'
 import type { Message } from '@/types/chat'
 import { MatrixLoader } from './MatrixLoader'
+import { TestCasesPanel } from '@/components/testcases/TestCasesPanel'
 
 interface MessageBubbleProps {
   message: Message
@@ -158,6 +159,11 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
               {message.content}
             </ReactMarkdown>
           </div>
+          )}
+
+          {/* Painel de test cases extraídos (só pra mensagens com id no servidor) */}
+          {!streaming && message.serverMessageId && (
+            <TestCasesPanel messageId={message.serverMessageId} />
           )}
         </div>
       </div>

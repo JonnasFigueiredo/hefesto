@@ -47,7 +47,6 @@ export function JiraPage() {
         <h1 className="font-display text-2xl uppercase tracking-[0.25em] text-[var(--accent-cyan)] glow-cyan">
           JIRA
         </h1>
-        <Badge variant="cyan">ETAPA 4 // LEITURA</Badge>
         {isConfigured ? (
           <Badge variant="green">CONECTADO</Badge>
         ) : status.isLoading ? (

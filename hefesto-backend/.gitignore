@@ -10,3 +10,9 @@ target/
 # Local config (credentials)
 src/main/resources/application-local.yml
 src/main/resources/application-local.properties
+
+# SQLite database (Etapa 7)
+*.db
+*.db-shm
+*.db-wal
+hefesto.db

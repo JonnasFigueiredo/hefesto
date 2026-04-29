@@ -26,6 +26,7 @@ export interface WsIncomingChunk {
 export interface WsIncomingDone {
   type: 'done'
   conversationId: string
+  messageId: string | null
   content: string
   adapterId: string
   model: string | null

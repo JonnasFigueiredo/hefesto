@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/cn'
 import { useChatStore } from '@/store/chatStore'
+import { deleteConversation } from '@/api/conversations'
 
 export function ConversationList() {
   const conversations = useChatStore((s) => s.conversations)
@@ -82,6 +83,12 @@ export function ConversationList() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
+                      // Backend delete só pra ids reais (não local-*).
+                      if (!c.id.startsWith('local-')) {
+                        void deleteConversation(c.id).catch(() => {
+                          // segue mesmo se falhar — usuário verá ainda no banco depois.
+                        })
+                      }
                       removeConversation(c.id)
                     }}
                     aria-label="delete conversation"

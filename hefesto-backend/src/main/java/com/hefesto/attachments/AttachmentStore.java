@@ -1,26 +1,16 @@
 package com.hefesto.attachments;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Armazenamento in-memory de anexos. Sem persistência — limpo a cada
- * restart do backend.
- *
- * <p>Limites:</p>
- * <ul>
- *   <li>500 KB por arquivo (txt suficiente, evita abuso);</li>
- *   <li>5 MB no total entre todos os arquivos vivos;</li>
- *   <li>50 arquivos no máximo.</li>
- * </ul>
+ * Fachada sobre {@link AttachmentRepository}. Mantém os limites de
+ * tamanho (500 KB / 5 MB / 50 arquivos) usando agregações SQL em vez de
+ * estado em memória. API histórica preservada.
  */
 @Component
 public class AttachmentStore {
@@ -31,8 +21,11 @@ public class AttachmentStore {
     public static final long MAX_TOTAL_BYTES = 5 * 1024 * 1024L;
     public static final int MAX_FILES = 50;
 
-    private final Map<String, Attachment> byId = new ConcurrentHashMap<>();
-    private final AtomicLong totalBytes = new AtomicLong(0);
+    private final AttachmentRepository repo;
+
+    public AttachmentStore(AttachmentRepository repo) {
+        this.repo = repo;
+    }
 
     public Attachment add(String filename, String contentType, String content) {
         if (content == null) content = "";
@@ -43,50 +36,45 @@ public class AttachmentStore {
                 "Arquivo grande demais (" + formatBytes(size)
                     + "). Máximo por arquivo: " + formatBytes(MAX_FILE_BYTES) + ".");
         }
-        if (byId.size() >= MAX_FILES) {
+        if (repo.count() >= MAX_FILES) {
             throw new AttachmentException(
                 "Limite de " + MAX_FILES + " anexos atingido. Remova alguns antes.");
         }
-        long projected = totalBytes.get() + size;
+        long projected = repo.totalBytes() + size;
         if (projected > MAX_TOTAL_BYTES) {
             throw new AttachmentException(
-                "Espaço insuficiente. Total atual: " + formatBytes(totalBytes.get())
+                "Espaço insuficiente. Total atual: " + formatBytes(repo.totalBytes())
                     + ", limite: " + formatBytes(MAX_TOTAL_BYTES) + ".");
         }
 
         String id = UUID.randomUUID().toString().substring(0, 12);
         Attachment att = Attachment.of(id, filename, contentType, content);
-        byId.put(id, att);
-        totalBytes.addAndGet(size);
+        repo.save(att);
 
         log.debug("Attachment added: {} ({}, {})", id, filename, formatBytes(size));
         return att;
     }
 
     public Attachment get(String id) {
-        return id == null ? null : byId.get(id);
+        return id == null ? null : repo.findById(id).orElse(null);
     }
 
     public boolean delete(String id) {
-        Attachment removed = byId.remove(id);
-        if (removed == null) return false;
-        totalBytes.addAndGet(-removed.sizeBytes());
-        log.debug("Attachment deleted: {} ({})", id, removed.filename());
-        return true;
+        boolean removed = repo.delete(id);
+        if (removed) log.debug("Attachment deleted: {}", id);
+        return removed;
     }
 
     public List<Attachment> list() {
-        return byId.values().stream()
-            .sorted(Comparator.comparingLong(Attachment::uploadedAt).reversed())
-            .toList();
+        return repo.findAll();
     }
 
     public long totalBytes() {
-        return totalBytes.get();
+        return repo.totalBytes();
     }
 
     public int count() {
-        return byId.size();
+        return repo.count();
     }
 
     private static String formatBytes(long bytes) {

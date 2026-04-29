@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, Sparkles } from 'lucide-react'
+import { ChevronDown, Check } from 'lucide-react'
 import { useAgents } from '@/hooks/useAgents'
 import { useActiveConversation, useChatStore } from '@/store/chatStore'
 import { cn } from '@/lib/cn'
@@ -7,6 +7,9 @@ import { cn } from '@/lib/cn'
 /**
  * Dropdown que lista agentes especialistas e permite selecionar um pra
  * conversa ativa. Ao selecionar, atualiza store.context.agentId.
+ *
+ * Modal com emoji grande, nome destacado, descrição completa e badge
+ * indicando o agente ativo.
  */
 export function AgentSelector() {
   const { data: agents, isLoading } = useAgents()
@@ -37,39 +40,53 @@ export function AgentSelector() {
 
   return (
     <div ref={ref} className="relative">
+      {/* Trigger — mostra emoji grande + nome do agente atual */}
       <button
         onClick={() => setOpen((v) => !v)}
         disabled={!conv}
         className={cn(
-          'flex items-center gap-2 px-3 h-7 border transition-colors',
+          'flex items-center gap-2 px-3 h-8 border transition-colors',
           'border-[var(--border)] hover:border-[var(--accent-cyan)]',
-          open && 'border-[var(--accent-cyan)]',
+          open && 'border-[var(--accent-cyan)] bg-[var(--bg-elevated)]',
           !conv && 'opacity-50 cursor-not-allowed',
         )}
+        title={selected ? `Agente: ${selected.name}` : 'Selecionar agente'}
       >
-        <Sparkles size={12} strokeWidth={1.5} className="text-[var(--accent-cyan)]" />
+        <span className="text-[15px] leading-none">{selected?.emoji ?? '✦'}</span>
         <span className="font-display uppercase tracking-[0.15em] text-[11px] text-[var(--text)]">
-          {selected?.emoji ? `${selected.emoji} ` : ''}{selected?.name ?? 'AGENTE'}
+          {selected?.name ?? 'AGENTE'}
         </span>
         <ChevronDown
           size={12}
           strokeWidth={1.5}
-          className={cn('text-[var(--text-dim)] transition-transform', open && 'rotate-180')}
+          className={cn('text-[var(--text-dim)] transition-transform ml-1', open && 'rotate-180')}
         />
       </button>
 
       {open && agents && (
-        <div className="absolute bottom-9 right-0 z-50 w-[360px] bg-[var(--bg-base)] border border-[var(--accent-cyan)] shadow-[0_0_24px_rgba(0,212,255,0.15)]">
+        <div className="absolute bottom-10 right-0 z-50 w-[420px] bg-[var(--bg-base)] border border-[var(--accent-cyan)] shadow-[0_0_24px_rgba(0,212,255,0.18)]">
           {/* corner brackets */}
           <span aria-hidden className="pointer-events-none absolute -top-px -left-px h-3 w-3 border-t border-l border-[var(--accent-cyan)]" />
           <span aria-hidden className="pointer-events-none absolute -top-px -right-px h-3 w-3 border-t border-r border-[var(--accent-cyan)]" />
           <span aria-hidden className="pointer-events-none absolute -bottom-px -left-px h-3 w-3 border-b border-l border-[var(--accent-cyan)]" />
           <span aria-hidden className="pointer-events-none absolute -bottom-px -right-px h-3 w-3 border-b border-r border-[var(--accent-cyan)]" />
 
-          <div className="px-3 py-2 border-b border-[var(--border-dim)] font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.2em]">
-            // SELECIONE UM AGENTE ESPECIALISTA
+          {/* Header do modal */}
+          <div className="px-4 py-3 border-b border-[var(--border-dim)] flex items-center justify-between">
+            <div>
+              <div className="font-display uppercase tracking-[0.18em] text-[12px] text-[var(--accent-cyan)] glow-cyan">
+                Escolha um agente
+              </div>
+              <div className="font-mono text-[10px] text-[var(--text-muted)] mt-0.5">
+                Define a persona e o comportamento das respostas
+              </div>
+            </div>
+            <span className="font-mono text-[10px] text-[var(--text-muted)]">
+              {agents.length} disponíveis
+            </span>
           </div>
 
+          {/* Lista de cards */}
           <ul className="max-h-[480px] overflow-y-auto">
             {agents.map((a) => {
               const isSelected = a.id === selectedId
@@ -81,22 +98,50 @@ export function AgentSelector() {
                       setOpen(false)
                     }}
                     className={cn(
-                      'w-full text-left px-3 py-3 flex items-start gap-3 transition-colors',
-                      'hover:bg-[var(--bg-elevated)]',
+                      'group w-full text-left px-4 py-3 flex items-start gap-4 transition-colors relative',
+                      'hover:bg-[var(--bg-elevated)] border-b border-[var(--border-dim)] last:border-b-0',
                       isSelected && 'bg-[var(--bg-elevated)]',
                     )}
                   >
-                    <span className="text-[18px] mt-[2px] leading-none w-6 text-center">
+                    {/* Active marker à esquerda */}
+                    {isSelected && (
+                      <span
+                        aria-hidden
+                        className="absolute left-0 top-0 bottom-0 w-[2px] bg-[var(--accent-cyan)]"
+                      />
+                    )}
+
+                    {/* Emoji em destaque */}
+                    <div
+                      className={cn(
+                        'shrink-0 w-10 h-10 flex items-center justify-center text-[22px] border transition-colors',
+                        isSelected
+                          ? 'border-[var(--accent-cyan)] bg-[rgba(0,212,255,0.05)]'
+                          : 'border-[var(--border-dim)] group-hover:border-[var(--border)]',
+                      )}
+                    >
                       {a.emoji ?? '✦'}
-                    </span>
+                    </div>
+
+                    {/* Conteúdo */}
                     <div className="flex-1 min-w-0">
-                      <div className="font-display uppercase tracking-[0.12em] text-[12px] text-[var(--text)] flex items-center gap-2">
-                        {a.name}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className={cn(
+                            'font-display uppercase tracking-[0.12em] text-[13px]',
+                            isSelected ? 'text-[var(--accent-cyan)]' : 'text-[var(--text)]',
+                          )}
+                        >
+                          {a.name}
+                        </span>
                         {isSelected && (
-                          <span className="text-[var(--accent-cyan)]">●</span>
+                          <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--accent-cyan)] border border-[var(--accent-cyan)] px-1.5 py-[1px]">
+                            <Check size={9} strokeWidth={2.5} />
+                            ATIVO
+                          </span>
                         )}
                       </div>
-                      <div className="font-sans text-[11px] text-[var(--text-dim)] mt-1 leading-snug">
+                      <div className="font-sans text-[12px] text-[var(--text-dim)] leading-snug">
                         {a.description}
                       </div>
                     </div>

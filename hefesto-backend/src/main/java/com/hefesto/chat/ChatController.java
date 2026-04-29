@@ -79,10 +79,15 @@ public class ChatController {
             c.id(),
             c.title(),
             c.adapterId(),
+            c.agentId(),
+            c.jiraIssueKey(),
+            store.attachmentsOf(c.id()),
             c.createdAt(),
             c.updatedAt(),
-            c.messages().stream()
+            c.archived(),
+            store.storedMessagesOf(c.id()).stream()
                 .map(m -> new ConversationDto.MessageDto(
+                    m.id(),
                     m.role().name().toLowerCase(),
                     m.content(),
                     m.timestamp()))

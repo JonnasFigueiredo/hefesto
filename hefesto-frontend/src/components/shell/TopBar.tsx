@@ -6,6 +6,7 @@ import { subscribeLatency, getLastLatency } from '@/api/http'
 function pageLabel(pathname: string): string {
   if (pathname.startsWith('/chat')) return 'CHAT'
   if (pathname.startsWith('/jira')) return 'JIRA'
+  if (pathname.startsWith('/analytics')) return 'ANALYTICS'
   if (pathname.startsWith('/settings')) return 'CONFIGURAÇÕES'
   return 'INÍCIO'
 }

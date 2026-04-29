@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { MessageSquare, GitBranch } from 'lucide-react'
+import { MessageSquare, GitBranch, BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { SystemStatus } from './SystemStatus'
 
@@ -14,6 +14,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: '/chat', label: 'CHAT', icon: MessageSquare },
   { to: '/jira', label: 'JIRA', icon: GitBranch },
+  { to: '/analytics', label: 'ANALYTICS', icon: BarChart3 },
 ]
 
 export function Sidebar() {

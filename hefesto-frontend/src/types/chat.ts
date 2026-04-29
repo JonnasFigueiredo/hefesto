@@ -5,6 +5,8 @@ export interface Message {
   role: MessageRole
   content: string
   timestamp: number
+  /** ID real no backend (SQLite) — populado após hidratação ou done event. */
+  serverMessageId?: string | null
   /** Metadata da resposta do assistente: latência, modelo, etc. */
   meta?: {
     latencyMs?: number

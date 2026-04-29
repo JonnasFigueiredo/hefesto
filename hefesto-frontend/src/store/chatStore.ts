@@ -33,17 +33,35 @@ interface ChatState {
   /** Anexa texto à mensagem em streaming. */
   appendChunk: (conversationId: string, content: string) => void
 
-  /** Finaliza streaming, atribui meta. */
+  /** Finaliza streaming, atribui meta + serverMessageId. */
   completeStreaming: (
     conversationId: string,
     finalContent: string,
-    meta: { latencyMs?: number; model?: string | null; adapterId?: string },
+    meta: { latencyMs?: number; model?: string | null; adapterId?: string; serverMessageId?: string | null },
   ) => void
 
   /** Cancela streaming, mantém o que já chegou. */
   cancelStreaming: (conversationId: string) => void
 
   removeConversation: (id: string) => void
+
+  /**
+   * Substitui o estado local pelas conversas vindas do backend.
+   * Chamado uma vez ao montar a ChatPage pra hidratar do SQLite.
+   */
+  loadFromServer: (
+    serverConversations: Array<{
+      id: string
+      title: string | null
+      adapterId: string
+      agentId: string
+      jiraIssueKey: string | null
+      attachmentIds: string[]
+      createdAt: number
+      updatedAt: number
+      messages: Array<{ id: string; role: string; content: string; timestamp: number }>
+    }>,
+  ) => void
 
   // ---- Context manipulations ----
 
@@ -172,6 +190,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   completeStreaming: (conversationId, finalContent, meta) => {
     const targetId = get().streamingMessageId
     if (!targetId) return
+    const { serverMessageId, ...rest } = meta
     set((s) => ({
       conversations: s.conversations.map((c) => {
         if (c.id !== conversationId) return c
@@ -179,7 +198,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
           ...c,
           messages: c.messages.map((m) =>
             m.id === targetId
-              ? { ...m, content: finalContent, meta: { ...m.meta, ...meta } }
+              ? {
+                  ...m,
+                  content: finalContent,
+                  serverMessageId: serverMessageId ?? m.serverMessageId ?? null,
+                  meta: { ...m.meta, ...rest },
+                }
               : m,
           ),
           updatedAt: Date.now(),
@@ -216,6 +240,41 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const remaining = s.conversations.filter((c) => c.id !== id)
       const activeId = s.activeId === id ? (remaining[0]?.id ?? null) : s.activeId
       return { conversations: remaining, activeId }
+    })
+  },
+
+  loadFromServer: (serverConversations) => {
+    if (!serverConversations || serverConversations.length === 0) return
+    const mapped: Conversation[] = serverConversations.map((s) => ({
+      id: s.id,
+      title: s.title,
+      adapterId: s.adapterId,
+      context: {
+        agentId: s.agentId ?? 'default',
+        attachmentIds: s.attachmentIds ?? [],
+        jiraIssueKey: s.jiraIssueKey,
+      },
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+      messages: (s.messages ?? []).map((m) => ({
+        id: messageId(),
+        serverMessageId: m.id,
+        role: (m.role as Message['role']),
+        content: m.content,
+        timestamp: m.timestamp,
+      })),
+    }))
+
+    set((curr) => {
+      // Mantém qualquer conversa local-* não sincronizada ainda no topo.
+      const localOnly = curr.conversations.filter((c) => c.id.startsWith('local-'))
+      const merged = [...localOnly, ...mapped]
+      // Se não tinha activeId ou apontava pra algo que não existe mais, escolhe a mais recente.
+      const stillExists = curr.activeId
+        ? merged.some((c) => c.id === curr.activeId)
+        : false
+      const activeId = stillExists ? curr.activeId : merged[0]?.id ?? null
+      return { conversations: merged, activeId }
     })
   },
 

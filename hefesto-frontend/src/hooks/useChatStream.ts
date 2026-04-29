@@ -56,6 +56,7 @@ export function useChatStream(): UseChatStream {
                 latencyMs: msg.latencyMs,
                 model: msg.model,
                 adapterId: msg.adapterId,
+                serverMessageId: msg.messageId,
               },
             )
             break

@@ -23,8 +23,6 @@ export function ContextBar() {
 
   const ctx = conv.context
   const agent = agents?.find((a) => a.id === ctx.agentId)
-  const hasContext =
-    ctx.attachmentIds.length > 0 || ctx.jiraIssueKey !== null
   const agentIsCustom = agent && agent.id !== 'default'
 
   return (
@@ -109,13 +107,6 @@ export function ContextBar() {
 
       {/* Linha 2: lista de arquivos anexados */}
       {ctx.attachmentIds.length > 0 && <AttachmentsList />}
-
-      {/* Linha 3: hint de ajuda quando não há contexto extra */}
-      {!hasContext && !agentIsCustom && (
-        <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.15em]">
-          // SELECIONE UM AGENTE, ANEXE ARQUIVOS OU VINCULE UMA ISSUE DO JIRA PARA ENRIQUECER O CONTEXTO
-        </div>
-      )}
     </div>
   )
 }

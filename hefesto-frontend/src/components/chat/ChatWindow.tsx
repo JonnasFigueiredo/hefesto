@@ -35,7 +35,7 @@ export function ChatWindow() {
         <div className="flex-1 min-w-0">
           {conv ? (
             <div className="font-sans text-[13px] text-[var(--text)] truncate">
-              {conv.title ?? <span className="text-[var(--text-muted)] italic">// sessão sem título</span>}
+              {conv.title ?? null}
             </div>
           ) : (
             <div className="font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">

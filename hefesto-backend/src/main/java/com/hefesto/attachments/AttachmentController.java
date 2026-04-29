@@ -26,9 +26,14 @@ public class AttachmentController {
     private static final Logger log = LoggerFactory.getLogger(AttachmentController.class);
 
     private final AttachmentStore store;
+    private final com.hefesto.telemetry.UsageEventService telemetry;
 
-    public AttachmentController(AttachmentStore store) {
+    public AttachmentController(
+        AttachmentStore store,
+        com.hefesto.telemetry.UsageEventService telemetry
+    ) {
         this.store = store;
+        this.telemetry = telemetry;
     }
 
     @GetMapping
@@ -61,12 +66,31 @@ public class AttachmentController {
         String content = new String(file.getBytes(), StandardCharsets.UTF_8);
         Attachment att = store.add(filename, contentType, content);
         log.info("Uploaded attachment {} ({} bytes)", att.id(), att.sizeBytes());
+        telemetry.record(
+            com.hefesto.telemetry.UsageEvent.Type.ATTACHMENT_UPLOAD,
+            null,
+            java.util.Map.of(
+                "attachmentId", att.id(),
+                "filename", att.filename(),
+                "sizeBytes", att.sizeBytes(),
+                "contentType", att.contentType() == null ? "" : att.contentType()
+            ),
+            null
+        );
         return AttachmentDto.from(att);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         boolean removed = store.delete(id);
+        if (removed) {
+            telemetry.record(
+                com.hefesto.telemetry.UsageEvent.Type.ATTACHMENT_DELETE,
+                null,
+                java.util.Map.of("attachmentId", id),
+                null
+            );
+        }
         return removed ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 

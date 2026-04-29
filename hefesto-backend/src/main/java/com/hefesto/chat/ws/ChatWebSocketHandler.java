@@ -39,6 +39,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ChatService chatService;
     private final ConversationStore store;
+    private final com.hefesto.testcases.TestCaseService testCases;
     private final ObjectMapper mapper = new ObjectMapper();
 
     /** Pool dedicada para spawn de subprocessos sem bloquear a thread do WS. */
@@ -51,9 +52,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     /** Flag de abort por sessão WS. */
     private final Map<String, AtomicBoolean> abortFlags = new ConcurrentHashMap<>();
 
-    public ChatWebSocketHandler(ChatService chatService, ConversationStore store) {
+    public ChatWebSocketHandler(
+        ChatService chatService,
+        ConversationStore store,
+        com.hefesto.testcases.TestCaseService testCases
+    ) {
         this.chatService = chatService;
         this.store = store;
+        this.testCases = testCases;
     }
 
     @Override
@@ -106,7 +112,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         Conversation conv = store.getOrCreate(in.conversationId(), adapter.id());
         conv.setAdapterId(adapter.id());
-        conv.addMessage(Message.user(in.message()));
+        if (in.agentId() != null && !in.agentId().isBlank()) conv.setAgentId(in.agentId());
+        if (in.jiraIssueKey() != null) conv.setJiraIssueKey(in.jiraIssueKey());
+        store.save(conv);
+
+        if (in.attachmentIds() != null && !in.attachmentIds().isEmpty()) {
+            store.linkAttachments(conv.id(), in.attachmentIds());
+        }
+
+        store.appendMessage(conv.id(), Message.user(in.message()));
 
         // Reset do flag de abort pra esta conversa.
         AtomicBoolean abortFlag = abortFlags.computeIfAbsent(
@@ -160,12 +174,23 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
                 @Override
                 public void onComplete(ChatResponse response) {
+                    String storedId = null;
                     Conversation c = store.get(convId);
                     if (c != null) {
-                        c.addMessage(Message.assistant(response.content()));
+                        var stored = store.appendMessage(
+                            convId, Message.assistant(response.content()));
+                        storedId = stored.id();
+                        // Auto-extração de test cases (rodando QA Specialist?).
+                        testCases.extractAndSave(
+                            in.agentId(),
+                            convId,
+                            storedId,
+                            response.content()
+                        );
                     }
                     sendJson(session, WsMessages.OutDone.of(
                         convId,
+                        storedId,
                         response.content(),
                         response.adapterId(),
                         response.model(),

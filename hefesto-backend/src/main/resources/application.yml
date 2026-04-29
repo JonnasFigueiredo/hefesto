@@ -13,8 +13,25 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 1MB
-      max-request-size: 2MB
+      # 5 MB cobre screenshots PNG/JPG e logs típicos. Anexos de TXT
+      # continuam limitados a 500KB pelo AttachmentStore.
+      max-file-size: 5MB
+      max-request-size: 6MB
+  # ---------------------------------------------------------------------------
+  # Persistência local (SQLite) — Etapa 7
+  # ---------------------------------------------------------------------------
+  datasource:
+    url: jdbc:sqlite:${HEFESTO_DB_PATH:./hefesto.db}
+    driver-class-name: org.sqlite.JDBC
+    # SQLite single-writer; manter pool pequeno e timeout generoso pra evitar
+    # SQLITE_BUSY em picos de telemetria + chat simultâneos.
+    hikari:
+      maximum-pool-size: 4
+      connection-timeout: 30000
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
 
 # Defaults seguros — sobrescritos por application-local.yml ou env vars.
 claude:

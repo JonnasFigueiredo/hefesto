@@ -44,13 +44,14 @@ public final class WsMessages {
     public record OutDone(
         String type,
         String conversationId,
+        String messageId,
         String content,
         String adapterId,
         String model,
         long latencyMs
     ) {
-        public static OutDone of(String conversationId, String content, String adapterId, String model, long latencyMs) {
-            return new OutDone("done", conversationId, content, adapterId, model, latencyMs);
+        public static OutDone of(String conversationId, String messageId, String content, String adapterId, String model, long latencyMs) {
+            return new OutDone("done", conversationId, messageId, content, adapterId, model, latencyMs);
         }
     }
 

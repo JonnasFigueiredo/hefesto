@@ -22,6 +22,10 @@ import com.hefesto.llm.LlmAdapter;
 import com.hefesto.llm.LlmAdapterException;
 import com.hefesto.llm.LlmAdapterRegistry;
 import com.hefesto.llm.Message;
+import com.hefesto.telemetry.UsageEvent;
+import com.hefesto.telemetry.UsageEventService;
+import com.hefesto.testcases.TestCaseService;
+import com.hefesto.chat.MessageRepository.StoredMessage;
 
 /**
  * Orquestra o envio de uma mensagem: resolve o adapter, agente, anexos e
@@ -39,6 +43,8 @@ public class ChatService {
     private final AttachmentStore attachments;
     private final JiraService jiraService;
     private final PromptBuilder promptBuilder;
+    private final UsageEventService telemetry;
+    private final TestCaseService testCases;
 
     public ChatService(
         LlmAdapterRegistry registry,
@@ -46,7 +52,9 @@ public class ChatService {
         AgentRegistry agents,
         AttachmentStore attachments,
         JiraService jiraService,
-        PromptBuilder promptBuilder
+        PromptBuilder promptBuilder,
+        UsageEventService telemetry,
+        TestCaseService testCases
     ) {
         this.registry = registry;
         this.store = store;
@@ -54,6 +62,8 @@ public class ChatService {
         this.attachments = attachments;
         this.jiraService = jiraService;
         this.promptBuilder = promptBuilder;
+        this.telemetry = telemetry;
+        this.testCases = testCases;
     }
 
     public ChatResponseDto sendMessage(ChatRequestDto req) {
@@ -62,16 +72,32 @@ public class ChatService {
 
         Conversation conv = store.getOrCreate(req.conversationId(), req.adapterId());
         conv.setAdapterId(req.adapterId());
+        if (req.agentId() != null && !req.agentId().isBlank()) conv.setAgentId(req.agentId());
+        if (req.jiraIssueKey() != null) conv.setJiraIssueKey(req.jiraIssueKey());
+        store.save(conv);
 
-        Message userMsg = Message.user(req.message());
-        conv.addMessage(userMsg);
+        if (req.attachmentIds() != null && !req.attachmentIds().isEmpty()) {
+            store.linkAttachments(conv.id(), req.attachmentIds());
+        }
+
+        store.appendMessage(conv.id(), Message.user(req.message()));
 
         String layeredPrompt = buildLayeredPrompt(req);
+        int attachmentCount = req.attachmentIds() == null ? 0 : req.attachmentIds().size();
         log.debug("Layered prompt length: {} chars (agent={}, attachments={}, jira={})",
             layeredPrompt.length(),
             req.agentId(),
-            req.attachmentIds() == null ? 0 : req.attachmentIds().size(),
+            attachmentCount,
             req.jiraIssueKey());
+
+        telemetry.record(UsageEvent.Type.CHAT_START, conv.id(), java.util.Map.of(
+            "adapterId", req.adapterId(),
+            "agentId", req.agentId() == null ? "default" : req.agentId(),
+            "attachmentCount", attachmentCount,
+            "hasJira", req.jiraIssueKey() != null,
+            "messageChars", req.message().length(),
+            "promptChars", layeredPrompt.length()
+        ), null);
 
         ChatRequest llmRequest = new ChatRequest(
             conv.id(),
@@ -80,18 +106,42 @@ public class ChatService {
             null
         );
 
-        ChatResponse response = adapter.chat(llmRequest);
+        long start = System.currentTimeMillis();
+        try {
+            ChatResponse response = adapter.chat(llmRequest);
+            StoredMessage assistantStored = store.appendMessage(
+                conv.id(), Message.assistant(response.content()));
 
-        Message assistantMsg = Message.assistant(response.content());
-        conv.addMessage(assistantMsg);
+            // Auto-extração de test cases se o agente for QA Specialist.
+            int extractedCount = testCases.extractAndSave(
+                req.agentId(),
+                conv.id(),
+                assistantStored.id(),
+                response.content()
+            ).size();
 
-        return new ChatResponseDto(
-            conv.id(),
-            response.content(),
-            response.adapterId(),
-            response.latencyMs(),
-            response.model()
-        );
+            telemetry.record(UsageEvent.Type.CHAT_COMPLETE, conv.id(), java.util.Map.of(
+                "adapterId", response.adapterId(),
+                "model", response.model() == null ? "" : response.model(),
+                "responseChars", response.content().length(),
+                "testCasesExtracted", extractedCount
+            ), response.latencyMs());
+
+            return new ChatResponseDto(
+                conv.id(),
+                response.content(),
+                response.adapterId(),
+                response.latencyMs(),
+                response.model()
+            );
+        } catch (RuntimeException e) {
+            telemetry.record(UsageEvent.Type.CHAT_ERROR, conv.id(), java.util.Map.of(
+                "adapterId", req.adapterId(),
+                "type", e.getClass().getSimpleName(),
+                "message", e.getMessage() == null ? "" : e.getMessage()
+            ), System.currentTimeMillis() - start);
+            throw e;
+        }
     }
 
     /**
