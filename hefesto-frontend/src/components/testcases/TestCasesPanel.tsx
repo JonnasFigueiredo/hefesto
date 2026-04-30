@@ -1,4 +1,4 @@
-import { TestTube } from 'lucide-react'
+import { FileDown, TestTube } from 'lucide-react'
 import { useTestCasesByMessage } from '@/hooks/useTestCases'
 import { TestCaseCard } from './TestCaseCard'
 
@@ -32,12 +32,12 @@ export function TestCasesPanel({ messageId }: Props) {
       <span aria-hidden className="pointer-events-none absolute h-2 w-2" />
 
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border-dim)] bg-[var(--bg-elevated)]">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border-dim)] bg-[var(--bg-elevated)] flex-wrap">
         <TestTube size={12} strokeWidth={1.5} className="text-[var(--accent-cyan)]" />
         <span className="font-display uppercase tracking-[0.18em] text-[11px] text-[var(--accent-cyan)] glow-cyan">
           CASOS DE TESTE EXTRAÍDOS
         </span>
-        <span className="ml-auto flex items-center gap-3 font-mono text-[10px] text-[var(--text-muted)]">
+        <span className="flex items-center gap-3 font-mono text-[10px] text-[var(--text-muted)] ml-auto mr-3">
           <span>
             <span className="text-[var(--text)]">{cases.length}</span> total
           </span>
@@ -54,6 +54,17 @@ export function TestCasesPanel({ messageId }: Props) {
             <span className="text-[var(--text-dim)]">{counts.PENDING} ○</span>
           )}
         </span>
+        <button
+          onClick={() => {
+            const url = `/api/reports/test-cases-by-message?messageId=${encodeURIComponent(messageId)}`
+            window.open(url, '_blank', 'noopener,noreferrer')
+          }}
+          title="Gera relatório HTML pronto pra imprimir ou salvar como PDF (Ctrl+P na nova aba)"
+          className="inline-flex items-center gap-1.5 h-6 px-2 border border-[var(--accent-cyan)] text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.05)] hover:bg-[rgba(0,212,255,0.12)] hover:shadow-[0_0_8px_rgba(0,212,255,0.4)] transition-all font-display uppercase tracking-[0.15em] text-[10px]"
+        >
+          <FileDown size={11} strokeWidth={1.5} />
+          GERAR RELATÓRIO
+        </button>
       </div>
 
       <div className="p-3 space-y-2">
