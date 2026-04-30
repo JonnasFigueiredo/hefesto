@@ -127,12 +127,14 @@ export function TestCaseCard({ testCase: tc }: Props) {
                     <button
                       key={s}
                       onClick={() => setStatus(s)}
+                      disabled={updateStatus.isPending}
                       className={cn(
                         'inline-flex items-center gap-1.5 px-2 h-6 border transition-colors',
                         'font-display uppercase tracking-[0.15em] text-[10px]',
                         active
                           ? 'border-current'
                           : 'border-[var(--border-dim)] hover:border-current',
+                        updateStatus.isPending && 'opacity-40 cursor-wait',
                       )}
                       style={{ color: cfg.color }}
                     >
@@ -145,6 +147,11 @@ export function TestCaseCard({ testCase: tc }: Props) {
               <span className="ml-auto" />
               <EvidencePicker testCaseId={tc.id} />
             </div>
+            {updateStatus.isError && (
+              <div className="mt-2 font-mono text-[10px] text-[var(--accent-magenta)] border border-[var(--accent-magenta)] px-2 py-1">
+                // ERRO :: {updateStatus.error instanceof Error ? updateStatus.error.message : 'falha na requisição'}
+              </div>
+            )}
           </Section>
 
           {/* Evidências */}
