@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.hefesto.agents.Agent;
+import com.hefesto.agents.AgentRegistry;
 import com.hefesto.testcases.TestCaseExtractor.ParsedTestCase;
 
 /**
@@ -23,15 +24,18 @@ public class TestCaseService {
     private final TestCaseExtractor extractor;
     private final TestCaseRepository repo;
     private final TestCaseEvidenceRepository evidenceRepo;
+    private final AgentRegistry agents;
 
     public TestCaseService(
         TestCaseExtractor extractor,
         TestCaseRepository repo,
-        TestCaseEvidenceRepository evidenceRepo
+        TestCaseEvidenceRepository evidenceRepo,
+        AgentRegistry agents
     ) {
         this.extractor = extractor;
         this.repo = repo;
         this.evidenceRepo = evidenceRepo;
+        this.agents = agents;
     }
 
     /**
@@ -47,8 +51,11 @@ public class TestCaseService {
         String messageId,
         String assistantContent
     ) {
-        if (!"qa-specialist".equals(agentId)) return List.of();
         if (assistantContent == null || assistantContent.isBlank()) return List.of();
+        // Só extrai se o agente atual estiver marcado pra isso
+        // (frontmatter "extractsTestCases: true" no .md).
+        Agent agent = agents.getOrDefault(agentId);
+        if (agent == null || !agent.extractsTestCases()) return List.of();
 
         try {
             List<ParsedTestCase> parsed = extractor.extract(assistantContent);
@@ -144,13 +151,8 @@ public class TestCaseService {
             || TestCase.STATUS_BLOCKED.equals(status);
     }
 
-    /** Identificador canônico do agente que dispara extração. */
-    public static String triggeringAgentId() {
-        return "qa-specialist";
-    }
-
     /** Pra futuras integrações que precisem checar se um agente arbitrário gera cases. */
     public static boolean isExtractingAgent(Agent agent) {
-        return agent != null && triggeringAgentId().equals(agent.id());
+        return agent != null && agent.extractsTestCases();
     }
 }

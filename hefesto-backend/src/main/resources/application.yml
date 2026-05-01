@@ -34,9 +34,16 @@ spring:
       schema-locations: classpath:schema.sql
 
 # Defaults seguros — sobrescritos por application-local.yml ou env vars.
+
+# Pasta com os arquivos .md dos agentes. Veja agentes/README.md.
+# Procurada relativa ao CWD e também um nível acima (caso rode em hefesto-backend/).
+agents:
+  path: ${AGENTS_PATH:./agentes}
+
 claude:
   cli:
-    path: C:\Users\Jonnas\AppData\Roaming\npm\claude.cmd
+    # Caminho pro binário do Claude Code CLI. Configure em application-local.yml.
+    path: ${CLAUDE_CLI_PATH:claude}
 
 jira:
   url: ${JIRA_URL:}

@@ -1,167 +1,167 @@
 package com.hefesto.agents;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
+
 /**
- * Registro central de agentes especialistas. Por enquanto, agentes são
- * pré-definidos em código; futuramente pode evoluir pra carregamento de
- * YAML/JSON ou criação pelo usuário.
+ * Registro de agentes carregado de uma pasta no disco. Cada arquivo
+ * {@code .md} dentro de {@code agents.path} (default {@code ./agentes})
+ * vira um agente disponível na UI.
+ *
+ * <p>O nome exibido no dropdown é o nome do arquivo (ex: "QAseniorAgent.md").
+ * O ID é o nome sem extensão.</p>
+ *
+ * <p>Reload em runtime via {@link #reload()} — sem precisar reiniciar o
+ * backend pra adicionar/editar agentes.</p>
  */
 @Component
 public class AgentRegistry {
 
-    private final Map<String, Agent> byId;
+    private static final Logger log = LoggerFactory.getLogger(AgentRegistry.class);
 
-    public AgentRegistry() {
-        this.byId = new LinkedHashMap<>();
-        for (Agent agent : buildDefaults()) {
-            byId.put(agent.id(), agent);
+    private final String configuredPath;
+    private final Map<String, Agent> byId = new LinkedHashMap<>();
+
+    public AgentRegistry(@Value("${agents.path:./agentes}") String configuredPath) {
+        this.configuredPath = configuredPath;
+    }
+
+    @PostConstruct
+    public void init() {
+        reload();
+    }
+
+    /**
+     * Recarrega agentes do disco. Substitui a lista atual atomicamente —
+     * se a leitura falhar, mantém o estado anterior.
+     *
+     * @return número de agentes carregados.
+     */
+    public synchronized int reload() {
+        Map<String, Agent> loaded = readFromDisk();
+        if (loaded.isEmpty()) {
+            log.warn("Nenhum agente encontrado em '{}' — usando agente padrão embutido.",
+                configuredPath);
+            loaded.put(Agent.DEFAULT_ID, fallbackDefault());
         }
+        synchronized (byId) {
+            byId.clear();
+            byId.putAll(loaded);
+        }
+        log.info("Agentes carregados ({}): {}", loaded.size(), loaded.keySet());
+        return loaded.size();
     }
 
     public List<Agent> list() {
-        return List.copyOf(byId.values());
+        synchronized (byId) {
+            return List.copyOf(byId.values());
+        }
     }
 
     public Optional<Agent> get(String id) {
         if (id == null || id.isBlank()) return Optional.empty();
-        return Optional.ofNullable(byId.get(id));
+        synchronized (byId) {
+            return Optional.ofNullable(byId.get(id));
+        }
     }
 
     public Agent getOrDefault(String id) {
-        return get(id).orElse(byId.get(Agent.DEFAULT_ID));
+        return get(id).orElseGet(() -> {
+            synchronized (byId) {
+                Agent dflt = byId.get(Agent.DEFAULT_ID);
+                if (dflt != null) return dflt;
+                // Sem default — pega o primeiro disponível.
+                return byId.values().stream().findFirst().orElse(fallbackDefault());
+            }
+        });
     }
 
-    private static List<Agent> buildDefaults() {
-        return List.of(
-            new Agent(
-                Agent.DEFAULT_ID,
-                "Padrão",
-                "Sem persona específica. Responde como um assistente geral.",
-                "",
-                null,
-                "✦"
-            ),
+    public String configuredPath() {
+        return configuredPath;
+    }
 
-            new Agent(
-                "qa-specialist",
-                "QA Specialist",
-                "Designer de casos de teste. Recebe histórias, manuais e requisitos; produz casos de teste estruturados (positivos, negativos, edge cases) e identifica gaps.",
-                """
-                Você é um QA Specialist sênior. Sua missão é analisar histórias de usuário, \
-                manuais e requisitos para projetar casos de teste de alta qualidade.
+    // -----------------------------------------------------------------------
 
-                Quando receber contexto:
-                1. Resuma sua compreensão da funcionalidade em 2-3 linhas.
-                2. Liste os casos de teste usando EXATAMENTE este template (um por caso):
+    private Map<String, Agent> readFromDisk() {
+        Map<String, Agent> result = new LinkedHashMap<>();
+        Path dir = resolvePath();
 
-                ## TC-NNN — [CATEGORIA] Título resumido em até 8 palavras
-                **Pré-condições:** descreva pré-requisitos numa linha (ou "—" se nenhum).
-                **Passos:**
-                1. Primeiro passo concreto.
-                2. Segundo passo.
-                3. Terceiro...
-                **Resultado esperado:** descrição clara do resultado validável.
-                **Prioridade:** P1 | P2 | P3
+        if (!Files.exists(dir) || !Files.isDirectory(dir)) {
+            log.info("Pasta de agentes '{}' não existe. Criando estrutura mínima recomendada não foi solicitada — pulando.",
+                dir);
+            return result;
+        }
 
-                Onde:
-                - NNN é número sequencial (TC-001, TC-002, ...).
-                - CATEGORIA é POSITIVO, NEGATIVO ou EDGE.
-                - Os marcadores **Pré-condições:**, **Passos:**, **Resultado esperado:**, \
-                  **Prioridade:** são literais e devem aparecer todos.
+        try (Stream<Path> files = Files.list(dir)) {
+            files
+                .filter(Files::isRegularFile)
+                .filter(p -> {
+                    String fn = p.getFileName().toString().toLowerCase();
+                    return fn.endsWith(".md") || fn.endsWith(".markdown");
+                })
+                .sorted()
+                .forEach(p -> {
+                    try {
+                        String content = Files.readString(p, StandardCharsets.UTF_8);
+                        Agent a = AgentFileParser.parse(p.getFileName().toString(), content);
+                        if (a.id() != null && !a.id().isBlank()) {
+                            result.put(a.id(), a);
+                        }
+                    } catch (IOException e) {
+                        log.warn("Falha ao ler agente {}: {}", p.getFileName(), e.getMessage());
+                    }
+                });
+        } catch (IOException e) {
+            log.warn("Falha ao listar pasta de agentes '{}': {}", dir, e.getMessage());
+        }
+        return result;
+    }
 
-                3. Após todos os casos, adicione uma seção "## Gaps e Observações" \
-                   listando: ambiguidades, regras não cobertas, perguntas pendentes.
-                4. Cubra POSITIVO, NEGATIVO e EDGE — distribuição típica 4/3/2 (P1/P2/P3).
+    private Path resolvePath() {
+        Path raw = Paths.get(configuredPath);
+        if (raw.isAbsolute()) return raw;
 
-                Cite trechos do manual quando relevante. Seja prático e evite repetição.""",
-                "Analise o contexto anexado e gere casos de teste estruturados.",
-                "🧪"
-            ),
+        // Tenta resolver relativo ao working dir primeiro, depois um nível acima
+        // (caso backend rode em hefesto-backend/ e a pasta agentes/ esteja na raiz).
+        Path cwd = Paths.get(System.getProperty("user.dir")).resolve(raw).normalize();
+        if (Files.exists(cwd)) return cwd;
 
-            new Agent(
-                "business-analyst",
-                "Analista de Negócios",
-                "Avalia histórias do Jira buscando completude, clareza e alinhamento com regras de negócio. Sugere melhorias e identifica dependências.",
-                """
-                Você é um Analista de Negócios sênior. Avalie histórias e requisitos quanto a:
+        Path parent = Paths.get(System.getProperty("user.dir")).getParent();
+        if (parent != null) {
+            Path fromParent = parent.resolve(raw).normalize();
+            if (Files.exists(fromParent)) return fromParent;
+        }
+        return cwd;
+    }
 
-                - **Clareza**: a história está bem descrita? termos definidos?
-                - **Completude**: critérios de aceite cobrem todos os fluxos?
-                - **Consistência**: alinhada com regras de negócio existentes (manual)?
-                - **Dependências**: depende de outras histórias, sistemas ou times?
-                - **Riscos**: o que pode dar errado? casos não-cobertos?
-                - **Métricas**: como medir sucesso?
-
-                Sugira melhorias específicas e questões a serem respondidas antes do dev começar.
-                Use Markdown estruturado. Seja construtivo.""",
-                "Avalie a história anexada e aponte gaps, riscos e melhorias.",
-                "📋"
-            ),
-
-            new Agent(
-                "tech-writer",
-                "Tech Writer",
-                "Escreve documentação técnica clara baseada em regras de negócio e funcionalidades existentes.",
-                """
-                Você é um Technical Writer. Sua missão é produzir documentação técnica clara \
-                e útil. Quando receber contexto sobre uma funcionalidade:
-
-                1. Estruture com seções: **Visão Geral**, **Como Funciona**, **Regras**, \
-                   **Exemplos**, **FAQ / Perguntas Comuns**.
-                2. Use linguagem direta, frases curtas, voz ativa. Evite jargão desnecessário.
-                3. Inclua exemplos concretos sempre que possível.
-                4. Marque informações que faltam ou que precisam de validação com `[CONFIRMAR]`.
-
-                Formato: Markdown bem estruturado. Headings hierárquicos. Listas curtas.""",
-                "Documente a funcionalidade descrita no contexto anexado.",
-                "📝"
-            ),
-
-            new Agent(
-                "architect",
-                "Arquiteto de Software",
-                "Analisa abordagens técnicas, identifica trade-offs e propõe soluções alinhadas com padrões existentes.",
-                """
-                Você é um Arquiteto de Software sênior. Quando receber contexto técnico:
-
-                1. Identifique o problema central em 1-2 frases.
-                2. Proponha 2-3 abordagens alternativas com prós/contras de cada.
-                3. Recomende uma com justificativa clara.
-                4. Considere: complexidade, manutenibilidade, performance, custo, riscos.
-                5. Aponte impactos em outros sistemas/módulos.
-                6. Quando útil, use diagramas ASCII ou Mermaid.
-
-                Seja objetivo. Foque em decisões, não em implementação detalhada.""",
-                "Proponha abordagens técnicas com prós e contras.",
-                "🏛"
-            ),
-
-            new Agent(
-                "code-reviewer",
-                "Code Reviewer",
-                "Revisa código procurando bugs, problemas de segurança, performance e aderência a boas práticas.",
-                """
-                Você é um Code Reviewer experiente. Revise o código com olho crítico mas \
-                construtivo. Categorias:
-
-                - **Bugs**: lógica incorreta, off-by-one, null handling, edge cases.
-                - **Segurança**: SQL injection, XSS, secrets vazados, auth/authz.
-                - **Performance**: N+1, complexidade, alocações desnecessárias, locks.
-                - **Manutenibilidade**: nomes, abstrações, testabilidade, comentários.
-                - **Padrões**: aderência a convenções do projeto.
-
-                Para cada achado: cite linha (se possível), descreva o problema, sugira correção.
-                Comece com 1-2 elogios genuínos antes de criticar.
-                Termine com um resumo executivo do estado geral do código.""",
-                "Revise o código anexado.",
-                "🔍"
-            )
+    /**
+     * Agente Default mínimo, usado quando a pasta de agentes está vazia ou
+     * inacessível. Garante que o sistema funciona out-of-the-box.
+     */
+    private static Agent fallbackDefault() {
+        return new Agent(
+            Agent.DEFAULT_ID,
+            "Default.md",
+            "Sem persona específica. Responde como um assistente geral.",
+            "",
+            null,
+            "✦",
+            false
         );
     }
 }
