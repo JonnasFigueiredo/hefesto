@@ -1,10 +1,9 @@
 import { useTranslation } from '@/i18n/I18nProvider'
-import type { Locale } from '@/i18n/translations'
 import { cn } from '@/lib/cn'
 
 /**
  * Toggle de idioma com bandeiras SVG inline. Posicionado na TopBar.
- * Estado ativo é destacado com border cyan + glow leve.
+ * Estado ativo: borda cyan + glow leve. Inativo: borda dim, ainda legível.
  */
 export function LanguageToggle() {
   const { locale, setLocale, t } = useTranslation()
@@ -13,7 +12,7 @@ export function LanguageToggle() {
     <div
       role="group"
       aria-label={t('lang.label')}
-      className="inline-flex items-center gap-1 border border-[var(--border-dim)] p-[2px]"
+      className="inline-flex items-center gap-[2px] border border-[var(--border)] bg-[var(--bg-elevated)] p-[2px]"
     >
       <FlagButton
         active={locale === 'pt-BR'}
@@ -49,11 +48,11 @@ function FlagButton({ active, onClick, title, flag, code }: FlagButtonProps) {
       aria-pressed={active}
       title={title}
       className={cn(
-        'inline-flex items-center gap-1.5 px-2 h-6 transition-all',
+        'inline-flex items-center gap-1.5 px-2 h-6 transition-all cursor-pointer',
         'font-mono text-[10px] uppercase tracking-[0.15em]',
         active
-          ? 'bg-[var(--bg-elevated)] text-[var(--accent-cyan)] shadow-[inset_0_0_0_1px_var(--accent-cyan)]'
-          : 'text-[var(--text-muted)] hover:text-[var(--text)] opacity-70 hover:opacity-100',
+          ? 'bg-[var(--bg-base)] text-[var(--accent-cyan)] shadow-[inset_0_0_0_1px_var(--accent-cyan)]'
+          : 'text-[var(--text-dim)] hover:text-[var(--text)] hover:bg-[var(--bg-base)]',
       )}
     >
       <span className="leading-none flex items-center">{flag}</span>
@@ -63,10 +62,10 @@ function FlagButton({ active, onClick, title, flag, code }: FlagButtonProps) {
 }
 
 // ---------------------------------------------------------------------------
-// SVG flags (inline) — compactas, alta legibilidade em ~22×16
+// SVG flags inline — compactas, alta legibilidade em ~20×14
 // ---------------------------------------------------------------------------
 
-function BrFlag({ size = 22 }: { size?: number }) {
+function BrFlag({ size = 20 }: { size?: number }) {
   const h = Math.round((size * 14) / 20)
   return (
     <svg
@@ -89,9 +88,8 @@ function BrFlag({ size = 22 }: { size?: number }) {
   )
 }
 
-function UsFlag({ size = 22 }: { size?: number }) {
+function UsFlag({ size = 20 }: { size?: number }) {
   const h = Math.round((size * 14) / 20)
-  // 13 listras alternadas, canton azul. Aproximação simplificada.
   const stripes = []
   for (let i = 0; i < 13; i++) {
     stripes.push(
@@ -115,7 +113,6 @@ function UsFlag({ size = 22 }: { size?: number }) {
     >
       {stripes}
       <rect x="0" y="0" width="7.6" height={(10 * 7) / 13} fill="#3c3b6e" />
-      {/* Pontinhos brancos representando estrelas, simplificado */}
       {Array.from({ length: 4 }).map((_, row) =>
         Array.from({ length: 5 }).map((_, col) => (
           <circle
