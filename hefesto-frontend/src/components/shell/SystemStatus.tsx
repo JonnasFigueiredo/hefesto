@@ -1,25 +1,31 @@
 import { useHealth } from '@/hooks/useHealth'
 import { StatusDot } from '@/components/ui/StatusDot'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 export function SystemStatus() {
   const { data, isError, isLoading } = useHealth()
+  const { t } = useTranslation()
 
   const status = isLoading ? 'pending' : isError ? 'offline' : 'online'
-  const label = isLoading ? 'CONECTANDO' : isError ? 'OFFLINE' : 'ONLINE'
+  const label = isLoading
+    ? t('status.connecting')
+    : isError
+      ? t('status.offline')
+      : t('status.online')
 
   return (
     <div className="border-t border-[var(--border-dim)] px-5 py-4 space-y-2 font-mono text-[10px]">
       <div className="flex items-center gap-2">
         <StatusDot status={status} />
-        <span className="text-[var(--text-dim)]">BACKEND</span>
+        <span className="text-[var(--text-dim)]">{t('status.backend')}</span>
         <span className="ml-auto text-[var(--text)]">{label}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-[var(--text-muted)]">ADAPTER</span>
+        <span className="text-[var(--text-muted)]">{t('status.adapter')}</span>
         <span className="ml-auto text-[var(--text-dim)]">CLAUDE-CODE</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-[var(--text-muted)]">VERSÃO</span>
+        <span className="text-[var(--text-muted)]">{t('status.version')}</span>
         <span className="ml-auto text-[var(--text-dim)]">{data?.version ?? '0.1.0'}</span>
       </div>
     </div>

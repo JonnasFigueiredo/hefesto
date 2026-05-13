@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 /**
  * Matrix-style decoder pra usar enquanto o stream do LLM não começou.
@@ -14,6 +15,7 @@ const TICK_MS = 80
 
 export function MatrixLoader() {
   const [tick, setTick] = useState(0)
+  const { t } = useTranslation()
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), TICK_MS)
@@ -29,7 +31,7 @@ export function MatrixLoader() {
           style={{ boxShadow: '0 0 8px rgba(0,255,159,0.8)' }}
         />
         <span style={{ textShadow: '0 0 6px rgba(0,255,159,0.5)' }}>
-          DECIFRANDO TRANSMISSÃO
+          {t('matrix.decrypting')}
         </span>
         <span className="ml-auto text-[var(--text-muted)]">
           {String((tick * 3) % 9999).padStart(4, '0')}
@@ -82,9 +84,9 @@ export function MatrixLoader() {
 
       {/* Footer status row */}
       <div className="flex items-center gap-3 mt-2 text-[9px] tracking-[0.25em] text-[var(--text-muted)]">
-        <span>// CANAL ABERTO</span>
+        <span>{t('matrix.channelOpen')}</span>
         <span className="flex-1 border-t border-dashed border-[var(--border-dim)]" />
-        <span>{NUM_CELLS} BLOCOS</span>
+        <span>{NUM_CELLS} {t('matrix.blocks')}</span>
       </div>
     </div>
   )

@@ -9,6 +9,7 @@ import { useJiraIssue, useJiraSearch, useJiraStatus } from '@/hooks/useJira'
 import { Link, useNavigate } from 'react-router-dom'
 import { useChatStore } from '@/store/chatStore'
 import type { JiraIssue } from '@/types/jira'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 const DEFAULT_JQL = 'assignee = currentUser() ORDER BY updated DESC'
 
@@ -16,6 +17,7 @@ export function JiraPage() {
   const navigate = useNavigate()
   const [jql, setJql] = useState<string>(DEFAULT_JQL)
   const [activeKey, setActiveKey] = useState<string | null>(null)
+  const { t } = useTranslation()
 
   const status = useJiraStatus()
   const search = useJiraSearch(jql, status.data?.configured === true)
@@ -45,29 +47,27 @@ export function JiraPage() {
 
       <div className="flex items-center gap-3">
         <h1 className="font-display text-2xl uppercase tracking-[0.25em] text-[var(--accent-cyan)] glow-cyan">
-          JIRA
+          {t('jira.title')}
         </h1>
         {isConfigured ? (
-          <Badge variant="green">CONECTADO</Badge>
+          <Badge variant="green">{t('jira.connected')}</Badge>
         ) : status.isLoading ? (
-          <Badge variant="dim">VERIFICANDO...</Badge>
+          <Badge variant="dim">{t('jira.checking')}</Badge>
         ) : (
-          <Badge variant="magenta">NÃO CONFIGURADO</Badge>
+          <Badge variant="magenta">{t('jira.notConfigured')}</Badge>
         )}
       </div>
 
       {!isConfigured && !status.isLoading && (
-        <Frame variant="danger" title="// JIRA NÃO CONFIGURADO">
+        <Frame variant="danger" title={t('jira.notConfiguredFrame')}>
           <div className="font-sans text-[13px] text-[var(--text-dim)] mb-3">
-            Configure as credenciais do Jira em <code className="font-mono text-[12px] text-[var(--accent-cyan)]">application-local.yml</code> ou
-            via variáveis de ambiente (<code className="font-mono text-[12px]">JIRA_URL</code>, <code className="font-mono text-[12px]">JIRA_EMAIL</code>, <code className="font-mono text-[12px]">JIRA_TOKEN</code>)
-            e reinicie o backend.
+            {t('jira.notConfiguredBody')}
           </div>
           <Link
             to="/settings"
             className="inline-block font-display uppercase tracking-[0.15em] text-[12px] text-[var(--accent-cyan)] hover:underline"
           >
-            // IR PARA CONFIGURAÇÕES →
+            {t('jira.goToSettings')}
           </Link>
         </Frame>
       )}
@@ -75,7 +75,7 @@ export function JiraPage() {
       {isConfigured && (
         <div className="flex-1 grid grid-cols-[minmax(380px,2fr)_3fr] gap-4 min-h-0">
           {/* Coluna esquerda: busca + lista */}
-          <Frame title="// CONSULTA" className="flex flex-col" padded={false}>
+          <Frame title={t('jira.frameQuery')} className="flex flex-col" padded={false}>
             <div className="p-4 border-b border-[var(--border-dim)]">
               <JqlSearchBar
                 initialJql={jql}
@@ -102,7 +102,7 @@ export function JiraPage() {
           </Frame>
 
           {/* Coluna direita: detalhe */}
-          <Frame title="// HISTÓRIA" className="flex flex-col" padded={false}>
+          <Frame title={t('jira.frameIssue')} className="flex flex-col" padded={false}>
             <div className="p-5 flex-1 min-h-0 overflow-hidden">
               {!activeKey ? (
                 <EmptyState />
@@ -124,14 +124,15 @@ export function JiraPage() {
 }
 
 function EmptyState() {
+  const { t } = useTranslation()
   return (
     <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-12">
       <BeetleMascot size={140} className="opacity-40" />
       <div className="font-mono text-[12px] text-[var(--text-dim)] uppercase tracking-[0.18em]">
-        // SELECIONE UMA HISTÓRIA PARA INSPECIONAR
+        {t('jira.emptyTitle')}
       </div>
       <div className="font-mono text-[10px] text-[var(--text-muted)] max-w-md">
-        Use a barra de busca ou clique em uma das sugestões rápidas (MEUS, EM PROGRESSO, etc.)
+        {t('jira.emptyHint')}
       </div>
     </div>
   )
@@ -153,9 +154,10 @@ function DetailLoading() {
 }
 
 function DetailError({ message }: { message: string }) {
+  const { t } = useTranslation()
   return (
     <div className="border border-[var(--accent-magenta)] p-4 font-mono text-[11px] text-[var(--accent-magenta)]">
-      // ERRO // {message}
+      {t('jira.detailError', { message })}
     </div>
   )
 }

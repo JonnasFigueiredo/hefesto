@@ -1,5 +1,6 @@
 import { cn } from '@/lib/cn'
 import { JiraStatusBadge } from './JiraStatusBadge'
+import { useTranslation } from '@/i18n/I18nProvider'
 import type { JiraIssueListItem } from '@/types/jira'
 
 interface Props {
@@ -21,6 +22,7 @@ function timeAgo(ts: number): string {
 }
 
 export function IssueCard({ issue, active = false, onClick }: Props) {
+  const { t } = useTranslation()
   return (
     <button
       onClick={onClick}
@@ -60,7 +62,7 @@ export function IssueCard({ issue, active = false, onClick }: Props) {
 
       <div className="flex items-center gap-3 font-mono text-[10px] text-[var(--text-muted)]">
         <span className="truncate">
-          {issue.assignee?.displayName ?? '— SEM RESPONSÁVEL'}
+          {issue.assignee?.displayName ?? t('issues.unassigned')}
         </span>
         {issue.priority && (
           <span className="text-[var(--text-dim)]">{issue.priority}</span>

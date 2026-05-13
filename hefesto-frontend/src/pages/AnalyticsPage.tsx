@@ -1,6 +1,7 @@
 import { Frame } from '@/components/ui/Frame'
 import { Panel } from '@/components/ui/Panel'
 import { Spinner } from '@/components/ui/Spinner'
+import { useTranslation } from '@/i18n/I18nProvider'
 import { useUsageEvents, useUsageSummary, useUsageTimeseries } from '@/hooks/useUsage'
 import type { UsageEvent } from '@/types/usage'
 import { cn } from '@/lib/cn'
@@ -11,6 +12,7 @@ import { cn } from '@/lib/cn'
  * pra manter a vibe FUI sem peso adicional.
  */
 export function AnalyticsPage() {
+  const { t } = useTranslation()
   const summary = useUsageSummary()
   const events = useUsageEvents(50)
   const timeseries = useUsageTimeseries(14)
@@ -33,18 +35,18 @@ export function AnalyticsPage() {
     <div className="h-full flex flex-col gap-6 overflow-y-auto">
       <div className="flex items-center gap-3">
         <h1 className="font-display text-2xl uppercase tracking-[0.25em] text-[var(--accent-cyan)] glow-cyan">
-          ANALYTICS
+          {t('analytics.title')}
         </h1>
         {summary.isLoading && <Spinner size={14} />}
       </div>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="EVENTOS TOTAIS" value={totalEvents.toLocaleString('pt-BR')} />
-        <KpiCard label="MENSAGENS CONCLUÍDAS" value={chatComplete.toLocaleString('pt-BR')} accent="green" />
-        <KpiCard label="UPLOADS DE ANEXO" value={attachmentUploads.toLocaleString('pt-BR')} accent="cyan" />
+        <KpiCard label={t('analytics.kpiTotalEvents')} value={totalEvents.toLocaleString('pt-BR')} />
+        <KpiCard label={t('analytics.kpiCompletedMessages')} value={chatComplete.toLocaleString('pt-BR')} accent="green" />
+        <KpiCard label={t('analytics.kpiAttachmentUploads')} value={attachmentUploads.toLocaleString('pt-BR')} accent="cyan" />
         <KpiCard
-          label="TAXA DE ERRO (CHAT)"
+          label={t('analytics.kpiErrorRate')}
           value={`${errorRate}%`}
           accent={chatErrors > 0 ? 'magenta' : 'dim'}
         />
@@ -52,7 +54,7 @@ export function AnalyticsPage() {
 
       {/* Latência média + breakdown por tipo */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Frame title="// LATÊNCIA MÉDIA">
+        <Frame title={t('analytics.avgLatency')}>
           <Panel className="font-mono text-[12px]">
             {chatAvgLatency !== undefined ? (
               <>
@@ -60,20 +62,20 @@ export function AnalyticsPage() {
                   {Math.round(chatAvgLatency).toLocaleString('pt-BR')} ms
                 </div>
                 <div className="text-[var(--text-muted)] mt-1">
-                  // chat.complete (ida + volta do LLM)
+                  {t('analytics.avgLatencyHint')}
                 </div>
               </>
             ) : (
-              <div className="text-[var(--text-muted)]">// SEM DADOS AINDA</div>
+              <div className="text-[var(--text-muted)]">{t('analytics.noData')}</div>
             )}
 
             {Object.keys(avgByType).length > 1 && (
               <div className="mt-4 pt-4 border-t border-[var(--border-dim)] space-y-1">
                 {Object.entries(avgByType)
-                  .filter(([t]) => t !== 'chat.complete')
-                  .map(([t, ms]) => (
-                    <div key={t} className="flex items-center justify-between gap-3 text-[10px]">
-                      <span className="text-[var(--text-dim)] truncate">{t}</span>
+                  .filter(([evType]) => evType !== 'chat.complete')
+                  .map(([evType, ms]) => (
+                    <div key={evType} className="flex items-center justify-between gap-3 text-[10px]">
+                      <span className="text-[var(--text-dim)] truncate">{evType}</span>
                       <span className="text-[var(--text)]">
                         {Math.round(ms).toLocaleString('pt-BR')} ms
                       </span>
@@ -84,18 +86,18 @@ export function AnalyticsPage() {
           </Panel>
         </Frame>
 
-        <Frame title="// EVENTOS POR TIPO">
+        <Frame title={t('analytics.eventsByType')}>
           <BarChart data={countByType} />
         </Frame>
       </div>
 
       {/* Time series por dia */}
-      <Frame title="// ATIVIDADE NOS ÚLTIMOS 14 DIAS">
+      <Frame title={t('analytics.activity14days')}>
         <DailyChart data={timeseries.data ?? []} />
       </Frame>
 
       {/* Lista de eventos recentes */}
-      <Frame title="// EVENTOS RECENTES">
+      <Frame title={t('analytics.recentEvents')}>
         <RecentEvents events={events.data ?? []} />
       </Frame>
     </div>
@@ -156,11 +158,12 @@ function KpiCard({ label, value, accent = 'cyan' }: KpiProps) {
 // --------------------------------------------------------------------------
 
 function BarChart({ data }: { data: Record<string, number> }) {
+  const { t } = useTranslation()
   const entries = Object.entries(data).sort((a, b) => b[1] - a[1])
   if (entries.length === 0) {
     return (
       <div className="font-mono text-[10px] text-[var(--text-muted)] py-4">
-        // SEM EVENTOS REGISTRADOS AINDA
+        {t('analytics.noEventsYet')}
       </div>
     )
   }
@@ -211,10 +214,11 @@ interface DailyData {
 }
 
 function DailyChart({ data }: { data: DailyData[] }) {
+  const { t } = useTranslation()
   if (data.length === 0) {
     return (
       <div className="font-mono text-[10px] text-[var(--text-muted)] py-4">
-        // SEM DADOS NOS ÚLTIMOS 14 DIAS
+        {t('analytics.no14dData')}
       </div>
     )
   }
@@ -261,10 +265,11 @@ function DailyChart({ data }: { data: DailyData[] }) {
 // --------------------------------------------------------------------------
 
 function RecentEvents({ events }: { events: UsageEvent[] }) {
+  const { t } = useTranslation()
   if (events.length === 0) {
     return (
       <div className="font-mono text-[10px] text-[var(--text-muted)] py-4">
-        // NENHUM EVENTO REGISTRADO
+        {t('analytics.noEvents')}
       </div>
     )
   }
@@ -274,11 +279,11 @@ function RecentEvents({ events }: { events: UsageEvent[] }) {
       <table className="w-full font-mono text-[11px]">
         <thead className="text-[var(--text-muted)] uppercase tracking-[0.18em]">
           <tr className="border-b border-[var(--border-dim)]">
-            <th className="text-left py-2 px-2">TIMESTAMP</th>
-            <th className="text-left py-2 px-2">TIPO</th>
-            <th className="text-left py-2 px-2">CONV</th>
-            <th className="text-right py-2 px-2">DURAÇÃO</th>
-            <th className="text-left py-2 px-2 hidden md:table-cell">PAYLOAD</th>
+            <th className="text-left py-2 px-2">{t('analytics.tableTimestamp')}</th>
+            <th className="text-left py-2 px-2">{t('analytics.tableType')}</th>
+            <th className="text-left py-2 px-2">{t('analytics.tableConv')}</th>
+            <th className="text-right py-2 px-2">{t('analytics.tableDuration')}</th>
+            <th className="text-left py-2 px-2 hidden md:table-cell">{t('analytics.tablePayload')}</th>
           </tr>
         </thead>
         <tbody>

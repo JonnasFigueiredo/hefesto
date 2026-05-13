@@ -4,6 +4,7 @@ import { cn } from '@/lib/cn'
 import type { Message } from '@/types/chat'
 import { MatrixLoader } from './MatrixLoader'
 import { TestCasesPanel } from '@/components/testcases/TestCasesPanel'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 interface MessageBubbleProps {
   message: Message
@@ -19,13 +20,14 @@ function formatTime(ts: number): string {
 
 export function MessageBubble({ message, streaming = false }: MessageBubbleProps) {
   const time = formatTime(message.timestamp)
+  const { t } = useTranslation()
 
   if (message.role === 'user') {
     return (
       <div className="flex justify-end">
         <div className="max-w-[70%]">
           <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em] mb-1 text-right">
-            VOCÊ // {time}
+            {t('message.user')} // {time}
           </div>
           <div className="bg-[var(--bg-overlay)] border-r-2 border-r-[var(--accent-cyan)] border-t border-b border-l border-[var(--border-dim)] px-4 py-3 text-[13px] text-[var(--text)] whitespace-pre-wrap leading-relaxed">
             {message.content}
@@ -40,7 +42,7 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
       <div className="w-full">
         <div className="relative border border-[var(--border-dim)]">
           <div className="absolute -top-2 left-3 px-2 bg-[var(--bg-base)] font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">
-            {message.role === 'jira_context' ? '// CONTEXTO JIRA INJETADO' : '// SISTEMA'}
+            {message.role === 'jira_context' ? t('message.jiraContext') : t('message.systemContext')}
           </div>
           <pre className="px-4 py-4 font-mono text-[11px] text-[var(--text-dim)] whitespace-pre-wrap break-words leading-relaxed">
             {message.content}
@@ -69,11 +71,11 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
           {streaming && (
             <span className="text-[var(--accent-cyan)] flex items-center gap-1">
               <span className="w-[6px] h-[6px] rounded-full bg-[var(--accent-cyan)] animate-pulse-dot" />
-              STREAMING
+              {t('message.streaming')}
             </span>
           )}
           {meta?.aborted && (
-            <span className="text-[var(--accent-magenta)]">ABORTADO</span>
+            <span className="text-[var(--accent-magenta)]">{t('message.aborted')}</span>
           )}
         </div>
         <div

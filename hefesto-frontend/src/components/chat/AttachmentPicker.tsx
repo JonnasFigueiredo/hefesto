@@ -3,6 +3,7 @@ import { Paperclip, Upload } from 'lucide-react'
 import { useUploadAttachment } from '@/hooks/useAttachments'
 import { useActiveConversation, useChatStore } from '@/store/chatStore'
 import { cn } from '@/lib/cn'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 const ACCEPT = '.txt,.md,.markdown,.json,.yml,.yaml,.csv,.log,text/*,application/json'
 
@@ -14,6 +15,7 @@ export function AttachmentPicker() {
   const upload = useUploadAttachment()
   const conv = useActiveConversation()
   const addAttachment = useChatStore((s) => s.addAttachment)
+  const { t } = useTranslation()
 
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setDragging] = useState(false)
@@ -21,7 +23,7 @@ export function AttachmentPicker() {
 
   const handleFiles = async (files: FileList | File[]) => {
     if (!conv) {
-      setError('Crie uma sessão antes de anexar arquivos.')
+      setError(t('attach.errorNoSession'))
       return
     }
     setError(null)
@@ -30,7 +32,7 @@ export function AttachmentPicker() {
         const att = await upload.mutateAsync(file)
         addAttachment(conv.id, att.id)
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'falha ao enviar arquivo')
+        setError(e instanceof Error ? e.message : t('attach.errorUpload'))
       }
     }
   }
@@ -84,17 +86,17 @@ export function AttachmentPicker() {
           'disabled:opacity-40 disabled:cursor-not-allowed',
           'font-display uppercase tracking-[0.15em] text-[11px]',
         )}
-        title="Anexar arquivos (.txt, .md, .json, .yml). Ou arraste e solte na tela."
+        title={t('attach.tooltip')}
       >
         {upload.isPending ? (
           <>
             <Upload size={12} strokeWidth={1.5} className="animate-pulse" />
-            ENVIANDO
+            {t('attach.uploading')}
           </>
         ) : (
           <>
             <Paperclip size={12} strokeWidth={1.5} />
-            ANEXAR
+            {t('attach.attach')}
           </>
         )}
       </button>
@@ -108,7 +110,7 @@ export function AttachmentPicker() {
           }}
         >
           <div className="bg-[var(--bg-base)] border-2 border-dashed border-[var(--accent-cyan)] px-8 py-6 font-display uppercase tracking-[0.2em] text-[14px] text-[var(--accent-cyan)]">
-            // SOLTE PARA ANEXAR
+            {t('attach.dropToAttach')}
           </div>
         </div>
       )}
@@ -120,7 +122,7 @@ export function AttachmentPicker() {
             onClick={() => setError(null)}
             className="ml-2 underline"
           >
-            FECHAR
+            {t('attach.dismiss')}
           </button>
         </div>
       )}

@@ -6,6 +6,7 @@ import { AttachmentPicker } from './AttachmentPicker'
 import { AgentSelector } from './AgentSelector'
 import { useAgents } from '@/hooks/useAgents'
 import { useActiveConversation, useChatStore } from '@/store/chatStore'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 /**
  * Faixa logo abaixo do header da ChatWindow que sumariza o contexto da
@@ -18,6 +19,7 @@ export function ContextBar() {
   const setJiraIssue = useChatStore((s) => s.setJiraIssue)
   const [editingKey, setEditingKey] = useState(false)
   const [keyInput, setKeyInput] = useState('')
+  const { t } = useTranslation()
 
   if (!conv) return null
 
@@ -38,7 +40,7 @@ export function ContextBar() {
           <Link
             to="/jira"
             className="group inline-flex items-center gap-2 px-2 h-7 border border-[var(--accent-amber)] text-[var(--accent-amber)] hover:bg-[rgba(255,181,71,0.06)] transition-colors"
-            title={`Abrir ${ctx.jiraIssueKey} no Jira`}
+            title={t('jira.openTooltip', { key: ctx.jiraIssueKey })}
           >
             <GitBranch size={12} strokeWidth={1.5} />
             <span className="font-mono text-[11px] tracking-[0.05em] font-bold">
@@ -50,7 +52,7 @@ export function ContextBar() {
                 e.stopPropagation()
                 setJiraIssue(conv.id, null)
               }}
-              aria-label="detach jira issue"
+              aria-label={t('jira.detachAria')}
               className="text-[var(--accent-amber)] hover:text-[var(--accent-magenta)]"
             >
               <X size={12} strokeWidth={2} />
@@ -89,10 +91,10 @@ export function ContextBar() {
           <button
             onClick={() => setEditingKey(true)}
             className="inline-flex items-center gap-2 px-2 h-7 border border-[var(--border)] hover:border-[var(--accent-amber)] hover:text-[var(--accent-amber)] text-[var(--text-dim)] transition-colors font-display uppercase tracking-[0.15em] text-[11px]"
-            title="Anexar issue do Jira pela KEY"
+            title={t('jira.attachByKeyTooltip')}
           >
             <Plus size={12} strokeWidth={1.5} />
-            JIRA
+            {t('jira.attachByKey')}
           </button>
         )}
 
@@ -100,7 +102,7 @@ export function ContextBar() {
         {agentIsCustom && agent && (
           <div className="ml-auto flex items-center gap-2 font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
             <Sparkles size={11} strokeWidth={1.5} className="text-[var(--accent-cyan)]" />
-            <span>// PERSONA ATIVA</span>
+            <span>{t('agent.personaActive')}</span>
           </div>
         )}
       </div>

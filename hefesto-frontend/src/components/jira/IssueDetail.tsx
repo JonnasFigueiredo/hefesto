@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/Button'
 import { JiraStatusBadge } from './JiraStatusBadge'
+import { useTranslation } from '@/i18n/I18nProvider'
 import { cn } from '@/lib/cn'
 import type { JiraIssue } from '@/types/jira'
 
@@ -14,11 +15,11 @@ interface Props {
   onSendToChat?: (issue: JiraIssue) => void
 }
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'description', label: 'DESCRIÇÃO' },
-  { id: 'acceptance', label: 'ACEITE' },
-  { id: 'comments', label: 'COMENTÁRIOS' },
-  { id: 'meta', label: 'META' },
+const TABS: { id: Tab; labelKey: string }[] = [
+  { id: 'description', labelKey: 'issue.tabDescription' },
+  { id: 'acceptance', labelKey: 'issue.tabAcceptance' },
+  { id: 'comments', labelKey: 'issue.tabComments' },
+  { id: 'meta', labelKey: 'issue.tabMeta' },
 ]
 
 function formatDate(ts: number): string {
@@ -30,6 +31,7 @@ function formatDate(ts: number): string {
 
 export function IssueDetail({ issue, onSendToChat }: Props) {
   const [tab, setTab] = useState<Tab>('description')
+  const { t } = useTranslation()
 
   return (
     <div className="flex flex-col gap-4 h-full overflow-hidden">
@@ -67,7 +69,7 @@ export function IssueDetail({ issue, onSendToChat }: Props) {
           onClick={() => onSendToChat?.(issue)}
           disabled={!onSendToChat}
         >
-          ENVIAR PRO CHAT
+          {t('issue.sendToChat')}
         </Button>
         {issue.url && (
           <a
@@ -77,25 +79,25 @@ export function IssueDetail({ issue, onSendToChat }: Props) {
             className="inline-flex items-center gap-2 h-7 px-3 text-[11px] font-display uppercase tracking-[0.15em] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] transition-colors"
           >
             <ExternalLink size={12} strokeWidth={1.5} />
-            ABRIR NO JIRA
+            {t('issue.openInJira')}
           </a>
         )}
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[var(--border-dim)]">
-        {TABS.map((t) => {
-          const active = t.id === tab
+        {TABS.map((tabDef) => {
+          const active = tabDef.id === tab
           const count =
-            t.id === 'acceptance'
+            tabDef.id === 'acceptance'
               ? issue.acceptanceCriteria.length
-              : t.id === 'comments'
+              : tabDef.id === 'comments'
                 ? issue.comments.length
                 : null
           return (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
+              key={tabDef.id}
+              onClick={() => setTab(tabDef.id)}
               className={cn(
                 'px-3 py-2 font-display uppercase tracking-[0.15em] text-[11px] relative transition-colors',
                 active
@@ -103,7 +105,7 @@ export function IssueDetail({ issue, onSendToChat }: Props) {
                   : 'text-[var(--text-dim)] hover:text-[var(--text)]',
               )}
             >
-              <span>{t.label}</span>
+              <span>{t(tabDef.labelKey)}</span>
               {count !== null && (
                 <span className="ml-1 text-[var(--text-muted)]">[{count}]</span>
               )}
@@ -137,10 +139,11 @@ export function IssueDetail({ issue, onSendToChat }: Props) {
 }
 
 function DescriptionTab({ markdown }: { markdown: string | null }) {
+  const { t } = useTranslation()
   if (!markdown) {
     return (
       <div className="font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-        // SEM DESCRIÇÃO
+        {t('issue.noDescription')}
       </div>
     )
   }
@@ -206,12 +209,13 @@ function DescriptionTab({ markdown }: { markdown: string | null }) {
 }
 
 function AcceptanceTab({ criteria }: { criteria: string[] }) {
+  const { t } = useTranslation()
   if (criteria.length === 0) {
     return (
       <div className="font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-        // NENHUM CRITÉRIO DE ACEITE DETECTADO
+        {t('issue.noAcceptance')}
         <div className="mt-2 normal-case tracking-normal">
-          {'(o backend procura por seções "critérios de aceite" / "acceptance criteria" na descrição)'}
+          {t('issue.acceptanceHint')}
         </div>
       </div>
     )
@@ -229,10 +233,11 @@ function AcceptanceTab({ criteria }: { criteria: string[] }) {
 }
 
 function CommentsTab({ issue }: { issue: JiraIssue }) {
+  const { t } = useTranslation()
   if (issue.comments.length === 0) {
     return (
       <div className="font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-        // SEM COMENTÁRIOS
+        {t('issue.noComments')}
       </div>
     )
   }
@@ -263,17 +268,18 @@ function CommentsTab({ issue }: { issue: JiraIssue }) {
 }
 
 function MetaTab({ issue }: { issue: JiraIssue }) {
+  const { t } = useTranslation()
   const rows: { label: string; value: string }[] = [
-    { label: 'KEY', value: issue.key },
-    { label: 'TIPO', value: issue.issueType ?? '—' },
-    { label: 'PRIORIDADE', value: issue.priority ?? '—' },
-    { label: 'STATUS', value: issue.status?.name ?? '—' },
-    { label: 'RESPONSÁVEL', value: issue.assignee?.displayName ?? '— SEM RESPONSÁVEL' },
-    { label: 'RELATOR', value: issue.reporter?.displayName ?? '—' },
-    { label: 'SPRINT', value: issue.sprint ?? '—' },
-    { label: 'LABELS', value: issue.labels.length ? issue.labels.join(', ') : '—' },
-    { label: 'CRIADO EM', value: formatDate(issue.created) },
-    { label: 'ATUALIZADO EM', value: formatDate(issue.updated) },
+    { label: t('issue.metaKey'), value: issue.key },
+    { label: t('issue.metaType'), value: issue.issueType ?? '—' },
+    { label: t('issue.metaPriority'), value: issue.priority ?? '—' },
+    { label: t('issue.metaStatus'), value: issue.status?.name ?? '—' },
+    { label: t('issue.metaAssignee'), value: issue.assignee?.displayName ?? t('issues.unassigned') },
+    { label: t('issue.metaReporter'), value: issue.reporter?.displayName ?? '—' },
+    { label: t('issue.metaSprint'), value: issue.sprint ?? '—' },
+    { label: t('issue.metaLabels'), value: issue.labels.length ? issue.labels.join(', ') : '—' },
+    { label: t('issue.metaCreated'), value: formatDate(issue.created) },
+    { label: t('issue.metaUpdated'), value: formatDate(issue.updated) },
   ]
   return (
     <table className="w-full font-mono text-[11px]">

@@ -1,4 +1,5 @@
 import { IssueCard } from './IssueCard'
+import { useTranslation } from '@/i18n/I18nProvider'
 import type { JiraIssueListItem } from '@/types/jira'
 
 interface Props {
@@ -20,6 +21,8 @@ export function IssueList({
   isError,
   errorMessage,
 }: Props) {
+  const { t } = useTranslation()
+
   if (isLoading) {
     return <Skeletons />
   }
@@ -27,7 +30,7 @@ export function IssueList({
   if (isError) {
     return (
       <div className="border border-[var(--accent-magenta)] p-4 font-mono text-[11px] text-[var(--accent-magenta)]">
-        // ERRO // {errorMessage ?? 'falha ao carregar histórias'}
+        {t('issues.errorLoad', { message: errorMessage ?? t('issues.errorFallback') })}
       </div>
     )
   }
@@ -35,7 +38,7 @@ export function IssueList({
   if (issues.length === 0) {
     return (
       <div className="text-center py-12 font-mono text-[11px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
-        // NENHUM RESULTADO
+        {t('issues.empty')}
       </div>
     )
   }
@@ -43,9 +46,14 @@ export function IssueList({
   return (
     <div className="flex flex-col gap-2">
       <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-        <span>// {issues.length} HISTÓRIA{issues.length === 1 ? '' : 'S'}</span>
+        <span>
+          {t(
+            issues.length === 1 ? 'issues.countSingular' : 'issues.countPlural',
+            { count: issues.length },
+          )}
+        </span>
         {!isLast && (
-          <span className="text-[var(--accent-amber)]">// HÁ MAIS PÁGINAS</span>
+          <span className="text-[var(--accent-amber)]">{t('issues.hasMorePages')}</span>
         )}
       </div>
       {issues.map((issue) => (

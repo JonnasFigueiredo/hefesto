@@ -2,22 +2,25 @@ import { NavLink } from 'react-router-dom'
 import { MessageSquare, GitBranch, BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { SystemStatus } from './SystemStatus'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 interface NavItem {
   to: string
-  label: string
+  labelKey: string
   icon: typeof MessageSquare
 }
 
 // Settings removido da nav do sidebar — uso interno apenas.
 // Rota /settings continua acessível direto pela URL pra debug/admin.
 const NAV: NavItem[] = [
-  { to: '/chat', label: 'CHAT', icon: MessageSquare },
-  { to: '/jira', label: 'JIRA', icon: GitBranch },
-  { to: '/analytics', label: 'ANALYTICS', icon: BarChart3 },
+  { to: '/chat', labelKey: 'nav.chat', icon: MessageSquare },
+  { to: '/jira', labelKey: 'nav.jira', icon: GitBranch },
+  { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
 ]
 
 export function Sidebar() {
+  const { t } = useTranslation()
+
   return (
     <aside className="w-[240px] shrink-0 h-full border-r border-[var(--border-dim)] flex flex-col bg-[var(--bg-base)]">
       {/* Logo */}
@@ -45,7 +48,6 @@ export function Sidebar() {
           >
             {({ isActive }) => (
               <>
-                {/* Active marker */}
                 <span
                   aria-hidden
                   className={cn(
@@ -54,7 +56,7 @@ export function Sidebar() {
                   )}
                 />
                 <item.icon size={16} strokeWidth={1.5} />
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
                 <span
                   aria-hidden
                   className={cn(
@@ -68,7 +70,6 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Status footer */}
       <SystemStatus />
     </aside>
   )

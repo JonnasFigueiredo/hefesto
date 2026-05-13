@@ -2,13 +2,13 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Send, Square } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { KBD } from '@/components/ui/KBD'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 interface ComposerProps {
   onSend: (text: string) => void
   onAbort?: () => void
   disabled?: boolean
   isSending?: boolean
-  /** True quando há streaming em curso (mostra STOP em vez de TRANSMIT). */
   isStreaming?: boolean
 }
 
@@ -21,8 +21,8 @@ export function Composer({
 }: ComposerProps) {
   const [value, setValue] = useState('')
   const taRef = useRef<HTMLTextAreaElement>(null)
+  const { t } = useTranslation()
 
-  // Auto-resize do textarea (até 200px).
   useEffect(() => {
     const ta = taRef.current
     if (!ta) return
@@ -47,7 +47,6 @@ export function Composer({
 
   return (
     <div className="relative border border-[var(--border)] focus-within:border-[var(--accent-cyan)] focus-within:shadow-[0_0_0_1px_var(--accent-cyan),0_0_12px_rgba(0,212,255,0.2)] transition-all">
-      {/* corner brackets */}
       <span aria-hidden className="pointer-events-none absolute -top-px -left-px h-3 w-3 border-t border-l border-[var(--accent-cyan)]" />
       <span aria-hidden className="pointer-events-none absolute -top-px -right-px h-3 w-3 border-t border-r border-[var(--accent-cyan)]" />
       <span aria-hidden className="pointer-events-none absolute -bottom-px -left-px h-3 w-3 border-b border-l border-[var(--accent-cyan)]" />
@@ -62,10 +61,10 @@ export function Composer({
         rows={2}
         placeholder={
           isStreaming
-            ? '// STREAMING EM ANDAMENTO — PARAR PARA INTERROMPER'
+            ? t('composer.placeholderStreaming')
             : isSending
-              ? '// AGUARDANDO RESPOSTA...'
-              : '// DIGITE SUA MENSAGEM...'
+              ? t('composer.placeholderSending')
+              : t('composer.placeholderIdle')
         }
         className="w-full px-4 py-3 bg-transparent text-[13px] text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none resize-none font-sans disabled:opacity-60"
       />
@@ -73,10 +72,10 @@ export function Composer({
       <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border-dim)] font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em]">
         <div>
           {isStreaming
-            ? '// AO VIVO'
+            ? t('composer.live')
             : value.length > 0
-              ? `${value.length} caracteres`
-              : '// PRONTO'}
+              ? `${value.length} ${t('composer.charsSuffix')}`
+              : t('composer.ready')}
         </div>
         <div className="flex items-center gap-3">
           {!isStreaming && (
@@ -93,7 +92,7 @@ export function Composer({
               onClick={onAbort}
               icon={<Square size={12} strokeWidth={1.5} fill="currentColor" />}
             >
-              PARAR
+              {t('composer.stop')}
             </Button>
           ) : (
             <Button
@@ -103,7 +102,7 @@ export function Composer({
               onClick={submit}
               icon={<Send size={12} strokeWidth={1.5} />}
             >
-              {isSending ? 'ENVIANDO' : 'ENVIAR'}
+              {isSending ? t('composer.sending') : t('composer.transmit')}
             </Button>
           )}
         </div>

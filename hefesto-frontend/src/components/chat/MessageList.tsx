@@ -2,12 +2,11 @@ import { useEffect, useRef } from 'react'
 import { MessageBubble } from './MessageBubble'
 import { ThinkingIndicator } from './ThinkingIndicator'
 import type { Message } from '@/types/chat'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 interface MessageListProps {
   messages: Message[]
-  /** Id da mensagem atualmente sendo streamed (assistant em construção). */
   streamingMessageId?: string | null
-  /** True quando ainda não chegou nenhum chunk (placeholder ainda vazio). */
   isWaitingFirstChunk?: boolean
 }
 
@@ -17,6 +16,7 @@ export function MessageList({
   isWaitingFirstChunk = false,
 }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -30,10 +30,10 @@ export function MessageList({
     (  o o  )
     /   |   \\
    (___|___)__
-   PRONTO PRO CHAT`}
+   ${t('empty.readyToChat')}`}
         </pre>
         <div className="font-mono text-[12px] text-[var(--text-dim)]">
-          // DIGITE UMA MENSAGEM PARA INICIAR A TRANSMISSÃO
+          {t('empty.typeToBegin')}
         </div>
       </div>
     )
