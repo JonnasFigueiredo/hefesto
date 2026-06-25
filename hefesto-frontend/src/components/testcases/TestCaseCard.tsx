@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Check, ChevronDown, Circle, Octagon, Slash, X } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/cn'
-import { useUpdateTestCaseStatus } from '@/hooks/useTestCases'
+import { useTranslation } from '@/i18n/I18nProvider'
+import { useUpdateTestCaseStatus, useEvidence } from '@/hooks/useTestCases'
 import type { TestCase, TestCaseStatus } from '@/types/testCase'
 import { EvidencePicker } from './EvidencePicker'
 import { EvidenceList } from './EvidenceList'
@@ -11,14 +12,18 @@ interface Props {
   testCase: TestCase
 }
 
-const STATUS_CONFIG: Record<
-  TestCaseStatus,
-  { label: string; color: string; icon: typeof Circle }
-> = {
-  PENDING: { label: 'PENDENTE', color: 'var(--text-dim)', icon: Circle },
-  PASSED: { label: 'PASSOU', color: 'var(--accent-green)', icon: Check },
-  FAILED: { label: 'FALHOU', color: 'var(--accent-magenta)', icon: X },
-  BLOCKED: { label: 'BLOQUEADO', color: 'var(--accent-amber)', icon: Octagon },
+const STATUS_ICONS: Record<TestCaseStatus, typeof Circle> = {
+  PENDING: Circle,
+  PASSED: Check,
+  FAILED: X,
+  BLOCKED: Octagon,
+}
+
+const STATUS_COLORS: Record<TestCaseStatus, string> = {
+  PENDING: 'var(--text-dim)',
+  PASSED: 'var(--accent-green)',
+  FAILED: 'var(--accent-magenta)',
+  BLOCKED: 'var(--accent-amber)',
 }
 
 const CATEGORY_VARIANT: Record<string, 'green' | 'magenta' | 'amber' | 'dim'> = {
@@ -28,12 +33,20 @@ const CATEGORY_VARIANT: Record<string, 'green' | 'magenta' | 'amber' | 'dim'> = 
 }
 
 export function TestCaseCard({ testCase: tc }: Props) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const updateStatus = useUpdateTestCaseStatus()
 
-  const statusCfg = STATUS_CONFIG[tc.status]
-  const StatusIcon = statusCfg.icon
+  const StatusIcon = STATUS_ICONS[tc.status]
+  const statusColor = STATUS_COLORS[tc.status]
   const catVariant = (tc.category && CATEGORY_VARIANT[tc.category]) ?? 'dim'
+
+  const STATUS_LABELS: Record<TestCaseStatus, string> = {
+    PENDING: t('tc.statusPending'),
+    PASSED: t('tc.statusPassed'),
+    FAILED: t('tc.statusFailed'),
+    BLOCKED: t('tc.statusBlocked'),
+  }
 
   const setStatus = (s: TestCaseStatus) => {
     updateStatus.mutate({ id: tc.id, status: s, notes: tc.notes })
@@ -58,7 +71,7 @@ export function TestCaseCard({ testCase: tc }: Props) {
           size={14}
           strokeWidth={2}
           className="mt-0.5 shrink-0"
-          style={{ color: statusCfg.color }}
+          style={{ color: statusColor }}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -94,13 +107,13 @@ export function TestCaseCard({ testCase: tc }: Props) {
       {expanded && (
         <div className="px-3 pb-3 space-y-3 border-t border-[var(--border-dim)] pt-3">
           {tc.preconditions && (
-            <Section label="// PRÉ-CONDIÇÕES">
+            <Section label={t('tc.sectionPreconditions')}>
               <div className="text-[12px] text-[var(--text-dim)]">{tc.preconditions}</div>
             </Section>
           )}
 
           {tc.steps.length > 0 && (
-            <Section label={`// PASSOS (${tc.steps.length})`}>
+            <Section label={t('tc.sectionSteps', { count: tc.steps.length })}>
               <ol className="list-decimal list-inside space-y-1 text-[12px] text-[var(--text)]">
                 {tc.steps.map((s, i) => (
                   <li key={i}>{s}</li>
@@ -110,54 +123,53 @@ export function TestCaseCard({ testCase: tc }: Props) {
           )}
 
           {tc.expectedResult && (
-            <Section label="// RESULTADO ESPERADO">
+            <Section label={t('tc.sectionExpected')}>
               <div className="text-[12px] text-[var(--text-dim)]">{tc.expectedResult}</div>
             </Section>
           )}
 
           {/* Status actions */}
-          <Section label="// EXECUÇÃO">
+          <Section label={t('tc.sectionExecution')}>
             <div className="flex flex-wrap gap-2">
-              {(['PENDING', 'PASSED', 'FAILED', 'BLOCKED'] as TestCaseStatus[]).map(
-                (s) => {
-                  const cfg = STATUS_CONFIG[s]
-                  const SIcon = cfg.icon
-                  const active = tc.status === s
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => setStatus(s)}
-                      disabled={updateStatus.isPending}
-                      className={cn(
-                        'inline-flex items-center gap-1.5 px-2 h-6 border transition-colors',
-                        'font-display uppercase tracking-[0.15em] text-[10px]',
-                        active
-                          ? 'border-current'
-                          : 'border-[var(--border-dim)] hover:border-current',
-                        updateStatus.isPending && 'opacity-40 cursor-wait',
-                      )}
-                      style={{ color: cfg.color }}
-                    >
-                      <SIcon size={10} strokeWidth={2} />
-                      {cfg.label}
-                    </button>
-                  )
-                },
-              )}
+              {(['PENDING', 'PASSED', 'FAILED', 'BLOCKED'] as TestCaseStatus[]).map((s) => {
+                const SIcon = STATUS_ICONS[s]
+                const active = tc.status === s
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setStatus(s)}
+                    disabled={updateStatus.isPending}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 px-2 h-6 border transition-colors',
+                      'font-display uppercase tracking-[0.15em] text-[10px]',
+                      active
+                        ? 'border-current'
+                        : 'border-[var(--border-dim)] hover:border-current',
+                      updateStatus.isPending && 'opacity-40 cursor-wait',
+                    )}
+                    style={{ color: STATUS_COLORS[s] }}
+                  >
+                    <SIcon size={10} strokeWidth={2} />
+                    {STATUS_LABELS[s]}
+                  </button>
+                )
+              })}
               <span className="ml-auto" />
               <EvidencePicker testCaseId={tc.id} />
             </div>
             {updateStatus.isError && (
               <div className="mt-2 font-mono text-[10px] text-[var(--accent-magenta)] border border-[var(--accent-magenta)] px-2 py-1">
-                // ERRO :: {updateStatus.error instanceof Error ? updateStatus.error.message : 'falha na requisição'}
+                {t('tc.errorPrefix')}{' '}
+                {updateStatus.error instanceof Error
+                  ? updateStatus.error.message
+                  : t('tc.errorFallback')}
               </div>
             )}
           </Section>
 
           {/* Evidências */}
-          <Section label="// EVIDÊNCIAS">
+          <Section label={t('tc.sectionEvidence')}>
             <EvidenceList testCaseId={tc.id} />
-            {/* fallback quando sem evidências */}
             <FallbackEvidence testCaseId={tc.id} />
           </Section>
         </div>
@@ -177,16 +189,14 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   )
 }
 
-// Hint quando não há evidências ainda — usa o mesmo hook dentro
-import { useEvidence } from '@/hooks/useTestCases'
-
 function FallbackEvidence({ testCaseId }: { testCaseId: string }) {
+  const { t } = useTranslation()
   const { data } = useEvidence(testCaseId)
   if (data && data.length > 0) return null
   return (
     <div className="font-mono text-[10px] text-[var(--text-muted)] flex items-center gap-2">
       <Slash size={10} strokeWidth={1.5} />
-      NENHUMA EVIDÊNCIA — ANEXE PRINTS, LOGS OU RESPOSTAS DE API NO BOTÃO ACIMA.
+      {t('tc.noEvidence')}
     </div>
   )
 }

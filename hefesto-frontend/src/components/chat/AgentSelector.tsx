@@ -3,6 +3,7 @@ import { ChevronDown, Check } from 'lucide-react'
 import { useAgents } from '@/hooks/useAgents'
 import { useActiveConversation, useChatStore } from '@/store/chatStore'
 import { cn } from '@/lib/cn'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 /**
  * Dropdown que lista agentes especialistas e permite selecionar um pra
@@ -15,6 +16,7 @@ export function AgentSelector() {
   const { data: agents, isLoading } = useAgents()
   const conv = useActiveConversation()
   const setAgent = useChatStore((s) => s.setAgent)
+  const { t } = useTranslation()
 
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -33,7 +35,7 @@ export function AgentSelector() {
   if (isLoading) {
     return (
       <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em] px-3 py-1 border border-[var(--border-dim)]">
-        // CARREGANDO AGENTES
+        {t('agent.loading')}
       </div>
     )
   }
@@ -50,11 +52,11 @@ export function AgentSelector() {
           open && 'border-[var(--accent-cyan)] bg-[var(--bg-elevated)]',
           !conv && 'opacity-50 cursor-not-allowed',
         )}
-        title={selected ? `Agente: ${selected.name}` : 'Selecionar agente'}
+        title={selected ? t('agent.titleTooltip', { name: selected.name }) : t('agent.selectFallback')}
       >
         <span className="text-[15px] leading-none">{selected?.emoji ?? '✦'}</span>
         <span className="font-display uppercase tracking-[0.15em] text-[11px] text-[var(--text)]">
-          {selected?.name ?? 'AGENTE'}
+          {selected?.name ?? t('agent.placeholder')}
         </span>
         <ChevronDown
           size={12}
@@ -75,14 +77,14 @@ export function AgentSelector() {
           <div className="px-4 py-3 border-b border-[var(--border-dim)] flex items-center justify-between">
             <div>
               <div className="font-display uppercase tracking-[0.18em] text-[12px] text-[var(--accent-cyan)] glow-cyan">
-                Escolha um agente
+                {t('agent.modalTitle')}
               </div>
               <div className="font-mono text-[10px] text-[var(--text-muted)] mt-0.5">
-                Define a persona e o comportamento das respostas
+                {t('agent.modalSubtitle')}
               </div>
             </div>
             <span className="font-mono text-[10px] text-[var(--text-muted)]">
-              {agents.length} disponíveis
+              {agents.length} {t('agent.availableSuffix')}
             </span>
           </div>
 
@@ -137,7 +139,7 @@ export function AgentSelector() {
                         {isSelected && (
                           <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--accent-cyan)] border border-[var(--accent-cyan)] px-1.5 py-[1px]">
                             <Check size={9} strokeWidth={2.5} />
-                            ATIVO
+                            {t('agent.active')}
                           </span>
                         )}
                       </div>

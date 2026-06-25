@@ -1,6 +1,7 @@
 import { FileText, X } from 'lucide-react'
 import { useAttachments, useDeleteAttachment } from '@/hooks/useAttachments'
 import { useActiveConversation, useChatStore } from '@/store/chatStore'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -20,6 +21,7 @@ export function AttachmentsList() {
   const { data: allAttachments } = useAttachments()
   const removeAttachment = useChatStore((s) => s.removeAttachment)
   const deleteAtt = useDeleteAttachment()
+  const { t } = useTranslation()
 
   if (!conv || conv.context.attachmentIds.length === 0) return null
 
@@ -35,7 +37,7 @@ export function AttachmentsList() {
         <div
           key={a.id}
           className="group inline-flex items-center gap-2 px-2 py-1 border border-[var(--border-dim)] hover:border-[var(--accent-cyan)] transition-colors"
-          title="Clique no X para desanexar; Shift+clique para deletar do servidor"
+          title={t('attach.itemTooltip')}
         >
           <FileText size={12} strokeWidth={1.5} className="text-[var(--accent-cyan)]" />
           <span className="font-mono text-[11px] text-[var(--text)] max-w-[180px] truncate">

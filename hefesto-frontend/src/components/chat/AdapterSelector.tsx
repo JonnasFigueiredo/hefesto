@@ -4,11 +4,13 @@ import { StatusDot } from '@/components/ui/StatusDot'
 import { useChatStore } from '@/store/chatStore'
 import { useAdapters } from '@/hooks/useAdapters'
 import { cn } from '@/lib/cn'
+import { useTranslation } from '@/i18n/I18nProvider'
 
 export function AdapterSelector() {
   const { data: adapters, isLoading, isError } = useAdapters()
   const selectedId = useChatStore((s) => s.selectedAdapterId)
   const setSelected = useChatStore((s) => s.setSelectedAdapter)
+  const { t } = useTranslation()
 
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -26,7 +28,7 @@ export function AdapterSelector() {
   if (isLoading) {
     return (
       <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em] px-3 py-1 border border-[var(--border-dim)]">
-        // CARREGANDO ADAPTERS
+        {t('adapter.loading')}
       </div>
     )
   }
@@ -34,7 +36,7 @@ export function AdapterSelector() {
   if (isError || !adapters || adapters.length === 0) {
     return (
       <div className="font-mono text-[10px] text-[var(--accent-magenta)] uppercase tracking-[0.18em] px-3 py-1 border border-[var(--accent-magenta)]">
-        // ADAPTERS INDISPONÍVEIS
+        {t('adapter.unavailable')}
       </div>
     )
   }
@@ -68,7 +70,7 @@ export function AdapterSelector() {
           <span aria-hidden className="pointer-events-none absolute -bottom-px -right-px h-3 w-3 border-b border-r border-[var(--accent-cyan)]" />
 
           <div className="px-3 py-2 border-b border-[var(--border-dim)] font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.2em]">
-            // SELECIONE O ADAPTER LLM
+            {t('adapter.selectTitle')}
           </div>
 
           <ul>
@@ -100,7 +102,7 @@ export function AdapterSelector() {
                       </div>
                       <div className="font-mono text-[10px] text-[var(--text-muted)] mt-0.5">
                         {a.id}
-                        {disabled && ' // INDISPONÍVEL'}
+                        {disabled && ` ${t('adapter.unavailableSuffix')}`}
                       </div>
                     </div>
                     {isSelected && (

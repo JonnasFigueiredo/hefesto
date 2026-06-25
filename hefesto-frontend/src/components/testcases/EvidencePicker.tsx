@@ -5,6 +5,7 @@ import {
   type DragEvent,
 } from 'react'
 import { Camera, Paperclip, Upload } from 'lucide-react'
+import { useTranslation } from '@/i18n/I18nProvider'
 import { useUploadEvidence } from '@/hooks/useTestCases'
 import { cn } from '@/lib/cn'
 
@@ -18,6 +19,7 @@ interface Props {
  * caso pra renderizar imediatamente.
  */
 export function EvidencePicker({ testCaseId }: Props) {
+  const { t } = useTranslation()
   const upload = useUploadEvidence()
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
@@ -29,7 +31,7 @@ export function EvidencePicker({ testCaseId }: Props) {
       try {
         await upload.mutateAsync({ testCaseId, file })
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'falha no upload')
+        setError(e instanceof Error ? e.message : t('attach.errorUpload'))
       }
     }
   }
@@ -82,22 +84,22 @@ export function EvidencePicker({ testCaseId }: Props) {
           'font-display uppercase tracking-[0.15em] text-[10px]',
           'disabled:opacity-40 disabled:cursor-not-allowed',
         )}
-        title="Anexar evidência (screenshot, log, etc.). Ou arraste e solte aqui."
+        title={t('evidence.tooltip')}
       >
         {upload.isPending ? (
           <>
             <Upload size={11} strokeWidth={1.5} className="animate-pulse" />
-            ENVIANDO
+            {t('evidence.uploading')}
           </>
         ) : dragging ? (
           <>
             <Camera size={11} strokeWidth={1.5} />
-            SOLTE AQUI
+            {t('evidence.dropHere')}
           </>
         ) : (
           <>
             <Paperclip size={11} strokeWidth={1.5} />
-            EVIDÊNCIA
+            {t('evidence.attach')}
           </>
         )}
       </button>

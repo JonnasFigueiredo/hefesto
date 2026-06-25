@@ -1,5 +1,6 @@
 import { FileText, Image as ImageIcon, X } from 'lucide-react'
 import { evidenceDownloadUrl } from '@/api/testCases'
+import { useTranslation } from '@/i18n/I18nProvider'
 import { useDeleteEvidence, useEvidence } from '@/hooks/useTestCases'
 import { cn } from '@/lib/cn'
 
@@ -23,6 +24,7 @@ interface Props {
  * ainda exclui mas confirma — aqui simplificamos pra só X).
  */
 export function EvidenceList({ testCaseId }: Props) {
+  const { t } = useTranslation()
   const { data: evidence } = useEvidence(testCaseId)
   const del = useDeleteEvidence()
 
@@ -51,7 +53,7 @@ export function EvidenceList({ testCaseId }: Props) {
                 onClick={() =>
                   del.mutate({ testCaseId, evidenceId: e.id })
                 }
-                aria-label="remover"
+                aria-label={t('evidence.removeAria')}
                 className="absolute top-0 right-0 p-1 bg-[var(--bg-base)] text-[var(--text-muted)] hover:text-[var(--accent-magenta)] opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X size={12} strokeWidth={2} />
@@ -86,7 +88,7 @@ export function EvidenceList({ testCaseId }: Props) {
             </span>
             <button
               onClick={() => del.mutate({ testCaseId, evidenceId: e.id })}
-              aria-label="remover"
+              aria-label={t('evidence.removeAria')}
               className="text-[var(--text-muted)] hover:text-[var(--accent-magenta)]"
             >
               <X size={12} strokeWidth={2} />

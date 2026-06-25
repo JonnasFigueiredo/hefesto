@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/Badge'
+import { useTranslation } from '@/i18n/I18nProvider'
 import type { JiraStatus } from '@/types/jira'
 
 interface Props {
@@ -12,7 +13,8 @@ interface Props {
  *  - done          → verde
  */
 export function JiraStatusBadge({ status }: Props) {
-  if (!status) return <Badge variant="dim">DESCONHECIDO</Badge>
+  const { t } = useTranslation()
+  if (!status) return <Badge variant="dim">{t('issues.statusUnknown')}</Badge>
 
   const variant =
     status.category === 'done'
