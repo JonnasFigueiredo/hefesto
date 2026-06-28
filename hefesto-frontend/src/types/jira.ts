@@ -60,3 +60,17 @@ export interface JiraIssuePage {
 export interface JiraStatusResponse {
   configured: boolean
 }
+
+export interface CreateIssuePayload {
+  projectKey: string
+  summary: string
+  description?: string
+  acceptanceCriteria?: string[]
+  issueType?: string
+}
+
+export interface CreatedIssue {
+  key: string
+  id: string | null
+  url: string | null
+}

@@ -126,6 +126,21 @@ export const translations: Record<Locale, Dict> = {
     'jira.emptyHint':
       'Use a barra de busca ou clique em uma das sugestões rápidas (MEUS, EM PROGRESSO, etc.)',
     'jira.detailError': '// ERRO // {message}',
+    // Criar história
+    'jira.createButton': '+ NOVA HISTÓRIA',
+    'jira.createTitle': '// NOVA HISTÓRIA',
+    'jira.fieldProject': 'PROJETO',
+    'jira.fieldType': 'TIPO',
+    'jira.fieldSummary': 'TÍTULO',
+    'jira.fieldSummaryPlaceholder': 'Resumo curto da história',
+    'jira.fieldDescription': 'DESCRIÇÃO',
+    'jira.fieldDescriptionPlaceholder': 'Contexto, regras de negócio, comportamento esperado...',
+    'jira.fieldCriteria': 'CRITÉRIOS DE ACEITE',
+    'jira.fieldCriteriaHint': '(um por linha)',
+    'jira.createSubmit': 'CRIAR',
+    'jira.createSubmitting': 'CRIANDO...',
+    'jira.createCancel': 'CANCELAR',
+    'jira.createError': 'Falha ao criar história',
 
     // JQL search
     'jql.execute': 'EXECUTAR',
@@ -357,6 +372,21 @@ export const translations: Record<Locale, Dict> = {
     'jira.emptyHint':
       'Use the search bar or click one of the quick suggestions (MINE, IN PROGRESS, etc.)',
     'jira.detailError': '// ERROR // {message}',
+    // Create story
+    'jira.createButton': '+ NEW STORY',
+    'jira.createTitle': '// NEW STORY',
+    'jira.fieldProject': 'PROJECT',
+    'jira.fieldType': 'TYPE',
+    'jira.fieldSummary': 'SUMMARY',
+    'jira.fieldSummaryPlaceholder': 'Short story summary',
+    'jira.fieldDescription': 'DESCRIPTION',
+    'jira.fieldDescriptionPlaceholder': 'Context, business rules, expected behavior...',
+    'jira.fieldCriteria': 'ACCEPTANCE CRITERIA',
+    'jira.fieldCriteriaHint': '(one per line)',
+    'jira.createSubmit': 'CREATE',
+    'jira.createSubmitting': 'CREATING...',
+    'jira.createCancel': 'CANCEL',
+    'jira.createError': 'Failed to create story',
 
     // JQL search
     'jql.execute': 'EXECUTE',

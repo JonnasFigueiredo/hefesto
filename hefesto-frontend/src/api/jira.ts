@@ -1,5 +1,7 @@
 import { http } from './http'
 import type {
+  CreateIssuePayload,
+  CreatedIssue,
   JiraComment,
   JiraIssue,
   JiraIssuePage,
@@ -40,4 +42,11 @@ export function getIssue(key: string): Promise<JiraIssue> {
 
 export function getIssueComments(key: string): Promise<JiraComment[]> {
   return http<JiraComment[]>(`/api/jira/issues/${encodeURIComponent(key)}/comments`)
+}
+
+export function createIssue(payload: CreateIssuePayload): Promise<CreatedIssue> {
+  return http<CreatedIssue>('/api/jira/issues', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }

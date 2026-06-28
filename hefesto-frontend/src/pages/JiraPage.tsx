@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { Frame } from '@/components/ui/Frame'
 import { JqlSearchBar } from '@/components/jira/JqlSearchBar'
 import { IssueList } from '@/components/jira/IssueList'
 import { IssueDetail } from '@/components/jira/IssueDetail'
+import { CreateIssueModal } from '@/components/jira/CreateIssueModal'
 import { BeetleMascot } from '@/components/jira/BeetleMascot'
 import { useJiraIssue, useJiraSearch, useJiraStatus } from '@/hooks/useJira'
 import { Link, useNavigate } from 'react-router-dom'
@@ -17,6 +19,7 @@ export function JiraPage() {
   const navigate = useNavigate()
   const [jql, setJql] = useState<string>(DEFAULT_JQL)
   const [activeKey, setActiveKey] = useState<string | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
   const { t } = useTranslation()
 
   const status = useJiraStatus()
@@ -55,6 +58,13 @@ export function JiraPage() {
           <Badge variant="dim">{t('jira.checking')}</Badge>
         ) : (
           <Badge variant="magenta">{t('jira.notConfigured')}</Badge>
+        )}
+        {isConfigured && (
+          <div className="ml-auto">
+            <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
+              {t('jira.createButton')}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -119,6 +129,16 @@ export function JiraPage() {
           </Frame>
         </div>
       )}
+
+      <CreateIssueModal
+        open={createOpen}
+        defaultProjectKey={activeKey ? activeKey.split('-')[0] : ''}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(created) => {
+          setCreateOpen(false)
+          setActiveKey(created.key)
+        }}
+      />
     </div>
   )
 }

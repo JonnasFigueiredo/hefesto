@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { getIssue, getJiraStatus, searchIssues } from '@/api/jira'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createIssue, getIssue, getJiraStatus, searchIssues } from '@/api/jira'
 
 export function useJiraStatus() {
   return useQuery({
@@ -24,5 +24,16 @@ export function useJiraIssue(key: string | null) {
     queryFn: () => getIssue(key as string),
     enabled: !!key,
     staleTime: 10_000,
+  })
+}
+
+export function useCreateIssue() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: createIssue,
+    onSuccess: () => {
+      // Reexecuta a busca pra a história recém-criada poder aparecer na lista.
+      qc.invalidateQueries({ queryKey: ['jira', 'search'] })
+    },
   })
 }

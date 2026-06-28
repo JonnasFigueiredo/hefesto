@@ -10,11 +10,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hefesto.jira.dto.CommentDto;
+import com.hefesto.jira.dto.CreateIssueRequest;
+import com.hefesto.jira.dto.CreatedIssueDto;
 import com.hefesto.jira.dto.IssueDto;
 import com.hefesto.jira.dto.IssueListDto;
 
@@ -96,6 +100,16 @@ public class JiraController {
         if (!service.isConfigured()) return notConfigured();
         List<CommentDto> list = service.getComments(key);
         return ResponseEntity.ok(list);
+    }
+
+    /** Cria uma história/tarefa. Default de tipo "Story". */
+    @PostMapping("/issues")
+    public ResponseEntity<?> create(@RequestBody CreateIssueRequest req) {
+        if (!service.isConfigured()) return notConfigured();
+        String type = (req.issueType() == null || req.issueType().isBlank()) ? "Story" : req.issueType();
+        CreatedIssueDto created = service.createStory(
+            req.projectKey(), type, req.summary(), req.description(), req.acceptanceCriteria());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @ExceptionHandler(JiraApiException.class)
