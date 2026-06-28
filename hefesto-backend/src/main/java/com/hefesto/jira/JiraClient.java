@@ -104,6 +104,30 @@ public class JiraClient {
         return get(uri);
     }
 
+    /**
+     * Cria uma issue. {@code fields} é o objeto {@code fields} da REST API v3
+     * (project, issuetype, summary, description em ADF, parent para subtarefa).
+     * Resposta traz {@code id}, {@code key} e {@code self}.
+     */
+    public JsonNode createIssue(Map<String, Object> fields) {
+        ensureConfigured();
+        String uri = UriComponentsBuilder.fromHttpUrl(props.url())
+            .path("/rest/api/3/issue")
+            .build()
+            .toUriString();
+        return post(uri, Map.of("fields", fields));
+    }
+
+    /** Adiciona um comentário (corpo em ADF) a uma issue. */
+    public JsonNode addComment(String key, Map<String, Object> adfBody) {
+        ensureConfigured();
+        String uri = UriComponentsBuilder.fromHttpUrl(props.url())
+            .path("/rest/api/3/issue/{key}/comment")
+            .buildAndExpand(key)
+            .toUriString();
+        return post(uri, Map.of("body", adfBody));
+    }
+
     /** Identidade do usuário autenticado — bom pra teste de credenciais. */
     public JsonNode getCurrentUser() {
         ensureConfigured();

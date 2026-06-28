@@ -1,0 +1,16 @@
+# Copie para application-local.yml (gitignored) e preencha com as credenciais
+# do seu Jira sandbox. Reinicie o backend após salvar.
+#
+# Gere o API token em:
+#   https://id.atlassian.com/manage-profile/security/api-tokens
+
+jira:
+  url: https://SEU-SANDBOX.atlassian.net
+  email: voce@empresa.com
+  token: "COLE_O_API_TOKEN_AQUI"
+
+# (opcional) caminho do Claude Code CLI, se for usar o adapter claude-code
+# como modelo nas tools analyze_requirements / generate_test_cases:
+# claude:
+#   cli:
+#     path: C:\Users\Jonnas\AppData\Roaming\npm\claude.cmd

@@ -4,6 +4,21 @@ server:
 spring:
   application:
     name: hefesto-backend
+  # ---------------------------------------------------------------------------
+  # Servidor MCP (Model Context Protocol) — Spring AI 1.0.x, starter webmvc.
+  # Expõe as tools de com.hefesto.mcp via SSE: GET /sse e POST /mcp/message.
+  # Clientes stdio (Claude Code/Desktop) conectam via proxy `mcp-remote`.
+  # ---------------------------------------------------------------------------
+  ai:
+    mcp:
+      server:
+        name: hefesto-mcp
+        version: 0.1.0
+        type: SYNC
+        instructions: >-
+          Hefesto expõe múltiplos modelos de LLM (locais .gguf via llama-server,
+          Claude Code, Gemini e outros). Use 'list_models' para descobrir os ids
+          disponíveis e 'chat' para conversar com um modelo específico.
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:default}
   config:
@@ -49,6 +64,30 @@ jira:
   url: ${JIRA_URL:}
   email: ${JIRA_EMAIL:}
   token: ${JIRA_TOKEN:}
+
+# -----------------------------------------------------------------------------
+# Modelos locais (.gguf de E:\LLM) servidos por instâncias do llama-server
+# (llama.cpp), uma porta por modelo. Cada entrada vira um adapter selecionável
+# e um destino da tool MCP 'chat'. Suba os llama-server com o script
+# scripts/start-llama-servers (na raiz do repo) antes de usar.
+# -----------------------------------------------------------------------------
+hefesto:
+  local-models:
+    - id: llama-3.1-8b
+      display-name: "Llama 3.1 8B (local)"
+      base-url: http://localhost:8081
+      model: llama-3.1-8b
+      timeout-seconds: 180
+    - id: mistral-7b
+      display-name: "Mistral 7B v0.3 (local)"
+      base-url: http://localhost:8082
+      model: mistral-7b
+      timeout-seconds: 180
+    - id: qwen3-8b
+      display-name: "Qwen3 8B (local)"
+      base-url: http://localhost:8083
+      model: qwen3-8b
+      timeout-seconds: 180
 
 logging:
   level:

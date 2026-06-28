@@ -22,7 +22,23 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Spring AI 1.0.x é a linha compatível com Spring Boot 3.4 + Java 17.
+             2.0.x exige Boot 4 + Java 21; 1.1.x exige Boot 3.5. Não subir sem
+             antes alinhar a versão do Spring Boot. -->
+        <spring-ai.version>1.0.7</spring-ai.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -43,6 +59,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <!-- Servidor MCP (Model Context Protocol) sobre SSE no stack Servlet/MVC.
+             Usamos a variante webmvc (não webflux) porque o projeto já carrega
+             spring-boot-starter-web; com DispatcherServlet presente o Spring
+             prioriza o stack Servlet, então o starter webmvc é o correto.
+             Endpoints padrão: GET /sse e POST /mcp/message. -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
         </dependency>
 
         <!-- Persistência: JdbcTemplate + SQLite -->

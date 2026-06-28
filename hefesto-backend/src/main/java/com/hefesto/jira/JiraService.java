@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hefesto.jira.dto.CommentDto;
+import com.hefesto.jira.dto.CreatedIssueDto;
 import com.hefesto.jira.dto.IssueDto;
 import com.hefesto.jira.dto.IssueListDto;
 import com.hefesto.jira.dto.JiraStatusDto;
@@ -105,6 +106,84 @@ public class JiraService {
         return parseUser(client.getCurrentUser());
     }
 
+    // ---------- escrita (criar / comentar) ----------
+
+    /**
+     * Cria uma issue de topo (história/tarefa) num projeto.
+     *
+     * @param projectKey  KEY do projeto (ex: "PROJ").
+     * @param issueType   nome do tipo (ex: "Story", "Task"). Default "Task" se vazio.
+     * @param summary     título da issue.
+     * @param description texto livre da descrição (vira ADF).
+     * @param acceptanceCriteria itens de critério de aceite (bullet list); pode ser null.
+     */
+    public CreatedIssueDto createStory(
+        String projectKey, String issueType, String summary,
+        String description, List<String> acceptanceCriteria
+    ) {
+        var fields = new java.util.LinkedHashMap<String, Object>();
+        fields.put("project", java.util.Map.of("key", requireText(projectKey, "projectKey")));
+        fields.put("issuetype", java.util.Map.of("name",
+            (issueType == null || issueType.isBlank()) ? "Task" : issueType.strip()));
+        fields.put("summary", requireText(summary, "summary"));
+        fields.put("description", Adf.descriptionWithCriteria(description, acceptanceCriteria));
+
+        JsonNode created = client.createIssue(fields);
+        return toCreated(created);
+    }
+
+    /**
+     * Cria uma subtarefa pendurada num parent. O projeto é derivado do prefixo
+     * do parentKey quando não informado.
+     *
+     * @param parentKey   KEY da issue pai (ex: "PROJ-123").
+     * @param issueType   nome do tipo de subtarefa (ex: "Sub-task"). Default "Sub-task".
+     */
+    public CreatedIssueDto createSubtask(
+        String parentKey, String issueType, String summary, String description
+    ) {
+        requireText(parentKey, "parentKey");
+        String projectKey = projectKeyOf(parentKey);
+
+        var fields = new java.util.LinkedHashMap<String, Object>();
+        fields.put("project", java.util.Map.of("key", projectKey));
+        fields.put("parent", java.util.Map.of("key", parentKey.strip()));
+        fields.put("issuetype", java.util.Map.of("name",
+            (issueType == null || issueType.isBlank()) ? "Sub-task" : issueType.strip()));
+        fields.put("summary", requireText(summary, "summary"));
+        fields.put("description", Adf.fromText(description));
+
+        JsonNode created = client.createIssue(fields);
+        return toCreated(created);
+    }
+
+    /** Adiciona um comentário (texto livre → ADF) a uma issue. */
+    public CommentDto addComment(String key, String text) {
+        JsonNode node = client.addComment(requireText(key, "key"), Adf.fromText(text));
+        return parseComment(node);
+    }
+
+    private CreatedIssueDto toCreated(JsonNode created) {
+        String key = created.path("key").asText();
+        return new CreatedIssueDto(key, created.path("id").asText(null), buildIssueUrl(key));
+    }
+
+    private static String projectKeyOf(String issueKey) {
+        int dash = issueKey.indexOf('-');
+        if (dash <= 0) {
+            throw new JiraApiException(0,
+                "parentKey inválido: '" + issueKey + "' (esperado formato PROJ-123)", null);
+        }
+        return issueKey.substring(0, dash).strip();
+    }
+
+    private static String requireText(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new JiraApiException(0, "Campo obrigatório ausente: " + field, null);
+        }
+        return value.strip();
+    }
+
     // ---------- mapping helpers ----------
 
     private IssueListDto toListItem(JsonNode issue) {
@@ -146,16 +225,19 @@ public class JiraService {
         if (!commentsArray.isArray()) return Collections.emptyList();
         List<CommentDto> result = new ArrayList<>();
         for (JsonNode c : commentsArray) {
-            String body = AdfToMarkdown.convert(c.path("body"));
-            result.add(new CommentDto(
-                c.path("id").asText(""),
-                parseUser(c.path("author")),
-                body,
-                parseTimestamp(c.path("created").asText(null)),
-                parseTimestamp(c.path("updated").asText(null))
-            ));
+            result.add(parseComment(c));
         }
         return result;
+    }
+
+    private CommentDto parseComment(JsonNode c) {
+        return new CommentDto(
+            c.path("id").asText(""),
+            parseUser(c.path("author")),
+            AdfToMarkdown.convert(c.path("body")),
+            parseTimestamp(c.path("created").asText(null)),
+            parseTimestamp(c.path("updated").asText(null))
+        );
     }
 
     private List<String> parseStringArray(JsonNode arr) {
