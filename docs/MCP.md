@@ -26,10 +26,36 @@ HefestoMcpTools  ──►  LlmAdapterRegistry
 
 ## Tools expostas
 
+**Base (modelos):**
+
 | Tool | Args | O que faz |
 |---|---|---|
 | `list_models` | — | Lista os adapters (`id`, `displayName`, `available`). |
 | `chat` | `model`, `message` | Manda o prompt ao modelo `model` e devolve a resposta. |
+
+**Jira — consumir:**
+
+| Tool | Args | O que faz |
+|---|---|---|
+| `jira_search` | `jql`, `maxResults?` | Busca issues por JQL. |
+| `jira_get_issue` | `key` | Detalha issue (descrição, critérios, comentários). |
+
+**Jira — escrever:**
+
+| Tool | Args | O que faz |
+|---|---|---|
+| `jira_create_story` | `projectKey`, `summary`, `description`, `acceptanceCriteria?`, `issueType?` | Cria história/tarefa. |
+| `jira_create_subtask` | `parentKey`, `summary`, `description?`, `issueType?` | Cria subtarefa sob um parent. |
+| `jira_update_issue` | `key`, `summary?`, `description?`, `acceptanceCriteria?` | Edita issue (campos não informados ficam intactos). |
+| `jira_transition_issue` | `key`, `transition` | Move a issue de status pelo nome da transição. |
+| `jira_add_comment` | `key`, `comment` | Adiciona comentário. |
+
+**Fluxo QA/dev/PO (dependem de um modelo disponível):**
+
+| Tool | Args | O que faz |
+|---|---|---|
+| `analyze_requirements` | `model`, `requirementText?`, `jiraKey?` | Analisa requisito (agente Analista de Negócios): gaps, riscos, critérios. |
+| `generate_test_cases` | `model`, `context?`, `jiraKey?` | Gera cenários TC-NNN (agente QA Sênior) e persiste os casos. |
 
 ## Endpoints
 
