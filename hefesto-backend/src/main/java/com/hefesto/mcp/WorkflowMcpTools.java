@@ -100,6 +100,28 @@ public class WorkflowMcpTools {
         return "Comentário adicionado em " + key;
     }
 
+    @Tool(name = "jira_update_issue",
+          description = "Edita uma issue existente: atualiza título e/ou descrição (e critérios "
+                      + "de aceite). Campos não informados ficam intactos.")
+    public String jiraUpdateIssue(
+            @ToolParam(description = "issue key, ex: 'PROJ-123'") String key,
+            @ToolParam(description = "novo título; deixe vazio pra não mexer", required = false) String summary,
+            @ToolParam(description = "nova descrição; deixe vazio pra não mexer", required = false) String description,
+            @ToolParam(description = "novos critérios de aceite (substituem a seção)", required = false) List<String> acceptanceCriteria) {
+        jiraService.updateIssue(key, summary, description, acceptanceCriteria);
+        return "Issue " + key + " atualizada.";
+    }
+
+    @Tool(name = "jira_transition_issue",
+          description = "Move uma issue para outro status pelo nome da transição (ex: 'Em "
+                      + "andamento', 'Done'). Se o nome não existir, retorna as opções válidas.")
+    public String jiraTransitionIssue(
+            @ToolParam(description = "issue key, ex: 'PROJ-123'") String key,
+            @ToolParam(description = "nome da transição/status destino, ex: 'Done'") String transition) {
+        jiraService.transitionIssue(key, transition);
+        return "Issue " + key + " movida para '" + transition + "'.";
+    }
+
     // ------------------------------------------------------------------ LLM (analisar / gerar)
 
     @Tool(name = "analyze_requirements",

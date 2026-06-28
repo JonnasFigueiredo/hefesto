@@ -157,6 +157,55 @@ public class JiraService {
         return toCreated(created);
     }
 
+    /**
+     * Atualiza summary e/ou descrição de uma issue. Campos nulos/vazios são
+     * ignorados (não sobrescreve com vazio). Critérios de aceite, se informados,
+     * entram na descrição como bullet list — exige description não-vazia.
+     */
+    public void updateIssue(String key, String summary, String description, List<String> acceptanceCriteria) {
+        requireText(key, "key");
+        var fields = new java.util.LinkedHashMap<String, Object>();
+        if (summary != null && !summary.isBlank()) {
+            fields.put("summary", summary.strip());
+        }
+        boolean hasDescription = description != null && !description.isBlank();
+        boolean hasCriteria = acceptanceCriteria != null && !acceptanceCriteria.isEmpty();
+        if (hasDescription || hasCriteria) {
+            fields.put("description", Adf.descriptionWithCriteria(description, acceptanceCriteria));
+        }
+        if (fields.isEmpty()) {
+            throw new JiraApiException(0, "Nada pra atualizar: informe summary e/ou description.", null);
+        }
+        client.updateIssue(key.strip(), fields);
+    }
+
+    /**
+     * Move a issue para um novo status pelo nome da transição (case-insensitive),
+     * ex: "Em andamento", "Done". Resolve o id consultando as transições válidas.
+     */
+    public void transitionIssue(String key, String transitionName) {
+        requireText(key, "key");
+        requireText(transitionName, "transitionName");
+
+        JsonNode transitions = client.getTransitions(key.strip()).path("transitions");
+        List<String> available = new ArrayList<>();
+        String matchedId = null;
+        for (JsonNode t : transitions) {
+            String name = t.path("name").asText("");
+            available.add(name);
+            if (name.equalsIgnoreCase(transitionName.strip())) {
+                matchedId = t.path("id").asText();
+                break;
+            }
+        }
+        if (matchedId == null) {
+            throw new JiraApiException(0,
+                "Transição '" + transitionName + "' indisponível para " + key
+                + ". Opções: " + String.join(", ", available), null);
+        }
+        client.transitionIssue(key.strip(), matchedId);
+    }
+
     /** Adiciona um comentário (texto livre → ADF) a uma issue. */
     public CommentDto addComment(String key, String text) {
         JsonNode node = client.addComment(requireText(key, "key"), Adf.fromText(text));

@@ -118,6 +118,40 @@ public class JiraClient {
         return post(uri, Map.of("fields", fields));
     }
 
+    /**
+     * Atualiza campos de uma issue existente. {@code fields} é o objeto
+     * {@code fields} da REST API v3 (summary, description em ADF, etc.).
+     * Responde 204 sem corpo.
+     */
+    public void updateIssue(String key, Map<String, Object> fields) {
+        ensureConfigured();
+        String uri = UriComponentsBuilder.fromHttpUrl(props.url())
+            .path("/rest/api/3/issue/{key}")
+            .buildAndExpand(key)
+            .toUriString();
+        put(uri, Map.of("fields", fields));
+    }
+
+    /** Lista as transições de status disponíveis pra issue (id + nome destino). */
+    public JsonNode getTransitions(String key) {
+        ensureConfigured();
+        String uri = UriComponentsBuilder.fromHttpUrl(props.url())
+            .path("/rest/api/3/issue/{key}/transitions")
+            .buildAndExpand(key)
+            .toUriString();
+        return get(uri);
+    }
+
+    /** Executa uma transição de status pelo id da transição. Responde 204. */
+    public void transitionIssue(String key, String transitionId) {
+        ensureConfigured();
+        String uri = UriComponentsBuilder.fromHttpUrl(props.url())
+            .path("/rest/api/3/issue/{key}/transitions")
+            .buildAndExpand(key)
+            .toUriString();
+        post(uri, Map.of("transition", Map.of("id", transitionId)));
+    }
+
     /** Adiciona um comentário (corpo em ADF) a uma issue. */
     public JsonNode addComment(String key, Map<String, Object> adfBody) {
         ensureConfigured();
@@ -165,6 +199,37 @@ public class JiraClient {
             );
         } catch (Exception e) {
             log.warn("Jira POST failed for {}: {}", uri, e.getMessage());
+            throw new JiraApiException(0, "Erro de rede chamando Jira: " + e.getMessage(), e);
+        }
+    }
+
+    private void put(String uri, Map<String, Object> body) {
+        log.debug("PUT {} body={}", uri, body);
+        try {
+            httpClient.put()
+                .uri(uri)
+                .header(HttpHeaders.AUTHORIZATION, basicAuthHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .retrieve()
+                .toBodilessEntity();
+        } catch (HttpClientErrorException e) {
+            HttpStatusCode status = e.getStatusCode();
+            log.warn("Jira API client error: {} on {}", status, uri);
+            throw new JiraApiException(
+                status.value(),
+                "Jira respondeu " + status + ": " + extractMessage(e.getResponseBodyAsString()),
+                e
+            );
+        } catch (HttpServerErrorException e) {
+            log.warn("Jira API server error: {} on {}", e.getStatusCode(), uri);
+            throw new JiraApiException(
+                e.getStatusCode().value(),
+                "Jira indisponível: " + e.getStatusCode(),
+                e
+            );
+        } catch (Exception e) {
+            log.warn("Jira PUT failed for {}: {}", uri, e.getMessage());
             throw new JiraApiException(0, "Erro de rede chamando Jira: " + e.getMessage(), e);
         }
     }
