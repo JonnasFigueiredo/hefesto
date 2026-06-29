@@ -7,6 +7,8 @@ import com.hefesto.jira.JiraService;
 import com.hefesto.jira.dto.CreatedIssueDto;
 import com.hefesto.jira.dto.IssueDto;
 import com.hefesto.jira.dto.IssueListDto;
+import com.hefesto.story.StoryReview;
+import com.hefesto.story.StoryReviewService;
 import com.hefesto.testcases.TestCase;
 import com.hefesto.testcases.TestCaseService;
 import org.springframework.ai.tool.annotation.Tool;
@@ -38,12 +40,15 @@ public class WorkflowMcpTools {
     private final ChatService chatService;
     private final JiraService jiraService;
     private final TestCaseService testCaseService;
+    private final StoryReviewService storyReviewService;
 
     public WorkflowMcpTools(ChatService chatService, JiraService jiraService,
-                            TestCaseService testCaseService) {
+                            TestCaseService testCaseService,
+                            StoryReviewService storyReviewService) {
         this.chatService = chatService;
         this.jiraService = jiraService;
         this.testCaseService = testCaseService;
+        this.storyReviewService = storyReviewService;
     }
 
     // ------------------------------------------------------------------ Jira (ler)
@@ -140,6 +145,41 @@ public class WorkflowMcpTools {
         ChatResponseDto resp = chatService.sendMessage(new ChatRequestDto(
                 model, null, message, AGENT_ANALISTA, null, blankToNull(jiraKey)));
         return resp.content();
+    }
+
+    @Tool(name = "review_story",
+          description = "Avalia a prontidão de uma história do Jira (Definition of Ready) com "
+                      + "critério INVEST: retorna um score 0-100, veredito, gaps, riscos e "
+                      + "critérios de aceite faltantes. Opcionalmente posta a revisão como "
+                      + "comentário na própria issue.")
+    public StoryReview reviewStory(
+            @ToolParam(description = "id do modelo, ex: 'claude-code'") String model,
+            @ToolParam(description = "issue key da história, ex: 'HEF-8'") String jiraKey,
+            @ToolParam(description = "se true, posta a revisão como comentário no Jira",
+                       required = false) Boolean postComment) {
+        StoryReview review = storyReviewService.review(model, jiraKey, null);
+        if (Boolean.TRUE.equals(postComment) && jiraKey != null && !jiraKey.isBlank()) {
+            jiraService.addComment(jiraKey, formatReviewComment(review));
+        }
+        return review;
+    }
+
+    /** Formata a revisão INVEST como texto pra comentar no Jira. */
+    static String formatReviewComment(StoryReview r) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Revisão de prontidão (INVEST) — score ").append(r.readinessScore()).append("/100\n");
+        if (r.verdict() != null && !r.verdict().isBlank()) sb.append(r.verdict().strip()).append('\n');
+        appendSection(sb, "Gaps", r.gaps());
+        appendSection(sb, "Riscos", r.risks());
+        appendSection(sb, "Critérios de aceite faltantes", r.missingCriteria());
+        appendSection(sb, "INVEST", r.invest());
+        return sb.toString().strip();
+    }
+
+    private static void appendSection(StringBuilder sb, String title, List<String> items) {
+        if (items == null || items.isEmpty()) return;
+        sb.append('\n').append(title).append(":\n");
+        for (String it : items) sb.append("- ").append(it).append('\n');
     }
 
     /** Resultado de {@link #generateTestCases}. */

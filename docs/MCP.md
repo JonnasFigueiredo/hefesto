@@ -55,6 +55,7 @@ HefestoMcpTools  ──►  LlmAdapterRegistry
 | Tool | Args | O que faz |
 |---|---|---|
 | `analyze_requirements` | `model`, `requirementText?`, `jiraKey?` | Analisa requisito (agente Analista de Negócios): gaps, riscos, critérios. |
+| `review_story` | `model`, `jiraKey`, `postComment?` | Avalia a prontidão (INVEST) da história: score 0-100, gaps, riscos, critérios faltantes; opcionalmente comenta no Jira. |
 | `generate_test_cases` | `model`, `context?`, `jiraKey?` | Gera cenários TC-NNN (agente QA Sênior) e persiste os casos. |
 | `create_test_subtasks` | `model`, `parentKey`, `context?` | Fecha o ciclo: gera os casos e cria 1 subtarefa por caso sob a história (tipo de subtarefa auto-detectado). |
 
