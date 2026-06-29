@@ -59,6 +59,21 @@ HefestoMcpTools  ──►  LlmAdapterRegistry
 | `generate_test_cases` | `model`, `context?`, `jiraKey?` | Gera cenários TC-NNN (agente QA Sênior) e persiste os casos. |
 | `create_test_subtasks` | `model`, `parentKey`, `context?` | Fecha o ciclo: gera os casos e cria 1 subtarefa por caso sob a história (tipo de subtarefa auto-detectado). |
 
+## Resources (contexto que o cliente puxa)
+
+| URI | Conteúdo |
+|---|---|
+| `hefesto://agents` | Agentes especialistas disponíveis (id, descrição). |
+| `hefesto://models` | Adapters de LLM e se estão disponíveis agora. |
+
+## Prompts (templates prontos que orquestram as tools)
+
+| Prompt | Args | O que faz |
+|---|---|---|
+| `revisar_historia` | `jiraKey` | Pede a revisão INVEST da história (via `review_story`). |
+| `gerar_testes_no_jira` | `jiraKey` | Gera casos e cria subtarefas (via `create_test_subtasks`). |
+| `rascunhar_historia` | `requisito` | Escreve uma história a partir de um requisito. |
+
 ## Endpoints
 
 - `GET  http://localhost:8080/sse` — abre o stream SSE; primeiro evento traz o
