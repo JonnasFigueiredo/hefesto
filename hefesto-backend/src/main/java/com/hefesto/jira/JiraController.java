@@ -21,6 +21,8 @@ import com.hefesto.jira.dto.CreateIssueRequest;
 import com.hefesto.jira.dto.CreatedIssueDto;
 import com.hefesto.jira.dto.IssueDto;
 import com.hefesto.jira.dto.IssueListDto;
+import com.hefesto.story.StoryDraftRequest;
+import com.hefesto.story.StoryDraftService;
 
 @RestController
 @RequestMapping("/api/jira")
@@ -30,10 +32,12 @@ public class JiraController {
 
     private final JiraService service;
     private final JiraProperties props;
+    private final StoryDraftService storyDrafts;
 
-    public JiraController(JiraService service, JiraProperties props) {
+    public JiraController(JiraService service, JiraProperties props, StoryDraftService storyDrafts) {
         this.service = service;
         this.props = props;
+        this.storyDrafts = storyDrafts;
     }
 
     @GetMapping("/status")
@@ -112,6 +116,12 @@ public class JiraController {
     public ResponseEntity<?> issueTypes(@PathVariable String key) {
         if (!service.isConfigured()) return notConfigured();
         return ResponseEntity.ok(service.listCreatableIssueTypes(key));
+    }
+
+    /** Gera um rascunho de história com IA a partir de requisitos/contexto. */
+    @PostMapping("/ai/draft-story")
+    public ResponseEntity<?> draftStory(@RequestBody StoryDraftRequest req) {
+        return ResponseEntity.ok(storyDrafts.draft(req));
     }
 
     /** Cria uma história/tarefa. Default de tipo "Story". */

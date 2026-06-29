@@ -8,6 +8,8 @@ import type {
   JiraProjectRef,
   JiraStatusResponse,
   JiraUser,
+  StoryDraft,
+  StoryDraftPayload,
 } from '@/types/jira'
 
 export function getJiraStatus(): Promise<JiraStatusResponse> {
@@ -58,4 +60,11 @@ export function getProjects(): Promise<JiraProjectRef[]> {
 
 export function getProjectIssueTypes(key: string): Promise<string[]> {
   return http<string[]>(`/api/jira/projects/${encodeURIComponent(key)}/issuetypes`)
+}
+
+export function draftStory(payload: StoryDraftPayload): Promise<StoryDraft> {
+  return http<StoryDraft>('/api/jira/ai/draft-story', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }

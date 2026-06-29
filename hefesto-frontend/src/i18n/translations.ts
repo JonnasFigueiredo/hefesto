@@ -141,6 +141,13 @@ export const translations: Record<Locale, Dict> = {
     'jira.createSubmitting': 'CRIANDO...',
     'jira.createCancel': 'CANCELAR',
     'jira.createError': 'Falha ao criar história',
+    'jira.aiTitle': '✨ ASSISTÊNCIA DE IA',
+    'jira.aiContextPlaceholder':
+      'Cole requisitos, contexto de negócio, descrição de telas/designs, padrões... A IA gera um rascunho da história.',
+    'jira.aiHint': 'Gera título, descrição e critérios — revise antes de criar',
+    'jira.aiGenerate': '✨ GERAR RASCUNHO',
+    'jira.aiGenerating': 'GERANDO...',
+    'jira.aiError': 'Falha ao gerar rascunho',
 
     // JQL search
     'jql.execute': 'EXECUTAR',
@@ -387,6 +394,13 @@ export const translations: Record<Locale, Dict> = {
     'jira.createSubmitting': 'CREATING...',
     'jira.createCancel': 'CANCEL',
     'jira.createError': 'Failed to create story',
+    'jira.aiTitle': '✨ AI ASSIST',
+    'jira.aiContextPlaceholder':
+      'Paste requirements, business context, screen/design notes, patterns... AI drafts the story.',
+    'jira.aiHint': 'Generates title, description and criteria — review before creating',
+    'jira.aiGenerate': '✨ GENERATE DRAFT',
+    'jira.aiGenerating': 'GENERATING...',
+    'jira.aiError': 'Failed to generate draft',
 
     // JQL search
     'jql.execute': 'EXECUTE',

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createIssue,
+  draftStory,
   getIssue,
   getJiraStatus,
   getProjectIssueTypes,
@@ -61,4 +62,8 @@ export function useCreateIssue() {
       qc.invalidateQueries({ queryKey: ['jira', 'search'] })
     },
   })
+}
+
+export function useDraftStory() {
+  return useMutation({ mutationFn: draftStory })
 }

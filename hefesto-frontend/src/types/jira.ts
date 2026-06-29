@@ -79,3 +79,16 @@ export interface JiraProjectRef {
   key: string
   name: string
 }
+
+export interface StoryDraftPayload {
+  model: string
+  context: string
+  jiraKey?: string
+}
+
+export interface StoryDraft {
+  summary: string
+  description: string
+  acceptanceCriteria: string[]
+  raw: string
+}

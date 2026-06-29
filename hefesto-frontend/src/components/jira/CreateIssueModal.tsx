@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
-import { useCreateIssue, useJiraIssueTypes, useJiraProjects } from '@/hooks/useJira'
+import {
+  useCreateIssue,
+  useDraftStory,
+  useJiraIssueTypes,
+  useJiraProjects,
+} from '@/hooks/useJira'
+import { useAdapters } from '@/hooks/useAdapters'
 import type { CreatedIssue } from '@/types/jira'
 import { cn } from '@/lib/cn'
 import { useTranslation } from '@/i18n/I18nProvider'
@@ -32,6 +38,33 @@ export function CreateIssueModal({
   const [summary, setSummary] = useState('')
   const [description, setDescription] = useState('')
   const [criteria, setCriteria] = useState('')
+
+  // --- assistência de IA ---
+  const adapters = useAdapters()
+  const draft = useDraftStory()
+  const [aiModel, setAiModel] = useState('')
+  const [aiContext, setAiContext] = useState('')
+
+  // Default do modelo: primeiro adapter disponível.
+  useEffect(() => {
+    if (aiModel || !adapters.data?.length) return
+    const firstAvailable = adapters.data.find((a) => a.available)
+    if (firstAvailable) setAiModel(firstAvailable.id)
+  }, [adapters.data, aiModel])
+
+  const handleGenerate = () => {
+    if (!aiModel || aiContext.trim().length === 0 || draft.isPending) return
+    draft.mutate(
+      { model: aiModel, context: aiContext.trim() },
+      {
+        onSuccess: (d) => {
+          if (d.summary) setSummary(d.summary)
+          if (d.description) setDescription(d.description)
+          if (d.acceptanceCriteria?.length) setCriteria(d.acceptanceCriteria.join('\n'))
+        },
+      },
+    )
+  }
 
   // Seleciona um projeto padrão assim que a lista chega: o sugerido (se válido)
   // ou o primeiro. Evita projeto inexistente como o erro que motivou os dropdowns.
@@ -112,6 +145,52 @@ export function CreateIssueModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          {/* Assistência de IA: gera rascunho a partir de requisitos/contexto */}
+          <div className="border border-[var(--accent-cyan)]/40 bg-[rgba(0,212,255,0.04)] p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-display uppercase tracking-[0.15em] text-[10px] text-[var(--accent-cyan)]">
+                {t('jira.aiTitle')}
+              </span>
+              <select
+                className={cn(selectCls, 'h-7 w-auto text-[11px]')}
+                value={aiModel}
+                onChange={(e) => setAiModel(e.target.value)}
+              >
+                {adapters.data?.map((a) => (
+                  <option key={a.id} value={a.id} disabled={!a.available}>
+                    {a.displayName}
+                    {a.available ? '' : ' (indisponível)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Textarea
+              rows={3}
+              value={aiContext}
+              onChange={(e) => setAiContext(e.target.value)}
+              placeholder={t('jira.aiContextPlaceholder')}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                {t('jira.aiHint')}
+              </span>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleGenerate}
+                disabled={!aiModel || aiContext.trim().length === 0 || draft.isPending}
+              >
+                {draft.isPending ? t('jira.aiGenerating') : t('jira.aiGenerate')}
+              </Button>
+            </div>
+            {draft.isError && (
+              <div className="font-mono text-[10px] text-[var(--accent-magenta)]">
+                {draft.error instanceof Error ? draft.error.message : t('jira.aiError')}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <Field label={t('jira.fieldProject')}>
               <select
