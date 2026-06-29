@@ -92,3 +92,26 @@ export interface StoryDraft {
   acceptanceCriteria: string[]
   raw: string
 }
+
+export interface StoryReview {
+  readinessScore: number
+  verdict: string
+  invest: string[]
+  gaps: string[]
+  risks: string[]
+  missingCriteria: string[]
+  raw: string
+}
+
+export interface CreatedTestSubtask {
+  testCaseCode: string
+  key: string
+  url: string | null
+}
+
+export interface TestSubtasksResult {
+  parentKey: string
+  generated: number
+  created: number
+  subtasks: CreatedTestSubtask[]
+}

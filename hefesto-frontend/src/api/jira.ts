@@ -10,6 +10,8 @@ import type {
   JiraUser,
   StoryDraft,
   StoryDraftPayload,
+  StoryReview,
+  TestSubtasksResult,
 } from '@/types/jira'
 
 export function getJiraStatus(): Promise<JiraStatusResponse> {
@@ -64,6 +66,28 @@ export function getProjectIssueTypes(key: string): Promise<string[]> {
 
 export function draftStory(payload: StoryDraftPayload): Promise<StoryDraft> {
   return http<StoryDraft>('/api/jira/ai/draft-story', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function reviewStory(payload: {
+  model: string
+  jiraKey: string
+  postComment?: boolean
+}): Promise<StoryReview> {
+  return http<StoryReview>('/api/jira/ai/review-story', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function createTestSubtasks(payload: {
+  model: string
+  parentKey: string
+  context?: string
+}): Promise<TestSubtasksResult> {
+  return http<TestSubtasksResult>('/api/jira/ai/test-subtasks', {
     method: 'POST',
     body: JSON.stringify(payload),
   })

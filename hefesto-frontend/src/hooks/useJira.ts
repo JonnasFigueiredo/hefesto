@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createIssue,
+  createTestSubtasks,
   draftStory,
   getIssue,
   getJiraStatus,
   getProjectIssueTypes,
   getProjects,
+  reviewStory,
   searchIssues,
 } from '@/api/jira'
 
@@ -66,4 +68,19 @@ export function useCreateIssue() {
 
 export function useDraftStory() {
   return useMutation({ mutationFn: draftStory })
+}
+
+export function useReviewStory() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: reviewStory,
+    onSuccess: (_data, vars) => {
+      // Se comentou no Jira, recarrega a issue pra o comentário aparecer.
+      if (vars.postComment) qc.invalidateQueries({ queryKey: ['jira', 'issue', vars.jiraKey] })
+    },
+  })
+}
+
+export function useCreateTestSubtasks() {
+  return useMutation({ mutationFn: createTestSubtasks })
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hefesto.jira.dto.AiActionRequests;
 import com.hefesto.jira.dto.CommentDto;
 import com.hefesto.jira.dto.CreateIssueRequest;
 import com.hefesto.jira.dto.CreatedIssueDto;
@@ -33,11 +34,15 @@ public class JiraController {
     private final JiraService service;
     private final JiraProperties props;
     private final StoryDraftService storyDrafts;
+    private final com.hefesto.mcp.WorkflowMcpTools workflow;
 
-    public JiraController(JiraService service, JiraProperties props, StoryDraftService storyDrafts) {
+    public JiraController(JiraService service, JiraProperties props,
+                          StoryDraftService storyDrafts,
+                          com.hefesto.mcp.WorkflowMcpTools workflow) {
         this.service = service;
         this.props = props;
         this.storyDrafts = storyDrafts;
+        this.workflow = workflow;
     }
 
     @GetMapping("/status")
@@ -122,6 +127,22 @@ public class JiraController {
     @PostMapping("/ai/draft-story")
     public ResponseEntity<?> draftStory(@RequestBody StoryDraftRequest req) {
         return ResponseEntity.ok(storyDrafts.draft(req));
+    }
+
+    /** Avalia a prontidão (INVEST) de uma história; opcionalmente comenta no Jira. */
+    @PostMapping("/ai/review-story")
+    public ResponseEntity<?> reviewStory(@RequestBody AiActionRequests.ReviewStoryRequest req) {
+        if (!service.isConfigured()) return notConfigured();
+        return ResponseEntity.ok(
+            workflow.reviewStory(req.model(), req.jiraKey(), req.postComment()));
+    }
+
+    /** Gera os casos de teste da história e cria uma subtarefa por caso. */
+    @PostMapping("/ai/test-subtasks")
+    public ResponseEntity<?> testSubtasks(@RequestBody AiActionRequests.TestSubtasksRequest req) {
+        if (!service.isConfigured()) return notConfigured();
+        return ResponseEntity.ok(
+            workflow.createTestSubtasks(req.model(), req.parentKey(), req.context()));
     }
 
     /** Cria uma história/tarefa. Default de tipo "Story". */

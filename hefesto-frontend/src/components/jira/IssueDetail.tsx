@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ExternalLink, Send } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/Button'
 import { JiraStatusBadge } from './JiraStatusBadge'
+import { useAdapters } from '@/hooks/useAdapters'
+import { useCreateTestSubtasks, useReviewStory } from '@/hooks/useJira'
 import { useTranslation } from '@/i18n/I18nProvider'
 import { cn } from '@/lib/cn'
-import type { JiraIssue } from '@/types/jira'
+import type { JiraIssue, StoryReview, TestSubtasksResult } from '@/types/jira'
 
 type Tab = 'description' | 'acceptance' | 'comments' | 'meta'
 
@@ -84,6 +86,9 @@ export function IssueDetail({ issue, onSendToChat }: Props) {
         )}
       </div>
 
+      {/* Ações com IA */}
+      <AiActions issueKey={issue.key} />
+
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[var(--border-dim)]">
         {TABS.map((tabDef) => {
@@ -134,6 +139,152 @@ export function IssueDetail({ issue, onSendToChat }: Props) {
         )}
         {tab === 'meta' && <MetaTab issue={issue} />}
       </div>
+    </div>
+  )
+}
+
+function AiActions({ issueKey }: { issueKey: string }) {
+  const { t } = useTranslation()
+  const adapters = useAdapters()
+  const review = useReviewStory()
+  const subtasks = useCreateTestSubtasks()
+
+  const [model, setModel] = useState('')
+  const [postComment, setPostComment] = useState(true)
+
+  useEffect(() => {
+    if (model || !adapters.data?.length) return
+    const first = adapters.data.find((a) => a.available)
+    if (first) setModel(first.id)
+  }, [adapters.data, model])
+
+  const busy = review.isPending || subtasks.isPending
+  const selectCls =
+    'h-7 px-2 bg-[var(--bg-overlay)] border border-[var(--border)] text-[var(--text)] font-mono text-[11px] focus:outline-none focus:border-[var(--accent-cyan)]'
+
+  return (
+    <div className="border border-[var(--border-dim)] bg-[rgba(0,212,255,0.03)] p-3 space-y-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="font-display uppercase tracking-[0.15em] text-[10px] text-[var(--accent-cyan)]">
+          {t('issue.aiTitle')}
+        </span>
+        <select className={selectCls} value={model} onChange={(e) => setModel(e.target.value)}>
+          {adapters.data?.map((a) => (
+            <option key={a.id} value={a.id} disabled={!a.available}>
+              {a.displayName}
+              {a.available ? '' : ' (indisponível)'}
+            </option>
+          ))}
+        </select>
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!model || busy}
+            onClick={() => review.mutate({ model, jiraKey: issueKey, postComment })}
+          >
+            {review.isPending ? t('issue.aiReviewing') : t('issue.aiReview')}
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={!model || busy}
+            onClick={() => subtasks.mutate({ model, parentKey: issueKey })}
+          >
+            {subtasks.isPending ? t('issue.aiGenerating') : t('issue.aiGenTests')}
+          </Button>
+        </div>
+      </div>
+
+      <label className="flex items-center gap-2 font-mono text-[10px] text-[var(--text-muted)]">
+        <input type="checkbox" checked={postComment} onChange={(e) => setPostComment(e.target.checked)} />
+        {t('issue.aiPostComment')}
+      </label>
+
+      {(review.isError || subtasks.isError) && (
+        <div className="font-mono text-[10px] text-[var(--accent-magenta)]">
+          {(review.error || subtasks.error) instanceof Error
+            ? (review.error || subtasks.error)!.message
+            : t('issue.aiError')}
+        </div>
+      )}
+
+      {review.data && <ReviewResult review={review.data} />}
+      {subtasks.data && <SubtasksResult result={subtasks.data} />}
+    </div>
+  )
+}
+
+function scoreColor(score: number): string {
+  if (score >= 70) return 'var(--accent-green, #28e07a)'
+  if (score >= 40) return 'var(--accent-amber, #f5c451)'
+  return 'var(--accent-magenta)'
+}
+
+function ReviewResult({ review }: { review: StoryReview }) {
+  const { t } = useTranslation()
+  return (
+    <div className="border-t border-[var(--border-dim)] pt-2 space-y-2">
+      <div className="flex items-center gap-3">
+        <span
+          className="font-display text-[20px] font-bold leading-none"
+          style={{ color: scoreColor(review.readinessScore) }}
+        >
+          {review.readinessScore}
+          <span className="text-[11px] text-[var(--text-muted)]">/100</span>
+        </span>
+        <span className="font-sans text-[12px] text-[var(--text)]">{review.verdict}</span>
+      </div>
+      <ReviewList title={t('issue.aiGaps')} items={review.gaps} />
+      <ReviewList title={t('issue.aiRisks')} items={review.risks} />
+      <ReviewList title={t('issue.aiMissingCriteria')} items={review.missingCriteria} />
+    </div>
+  )
+}
+
+function ReviewList({ title, items }: { title: string; items: string[] }) {
+  if (!items?.length) return null
+  return (
+    <div>
+      <div className="font-display uppercase tracking-[0.12em] text-[10px] text-[var(--text-dim)] mb-1">
+        {title}
+      </div>
+      <ul className="space-y-1 font-sans text-[12px] text-[var(--text)]">
+        {items.map((it, i) => (
+          <li key={i} className="flex gap-2">
+            <span className="text-[var(--accent-cyan)]">›</span>
+            <span>{it}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function SubtasksResult({ result }: { result: TestSubtasksResult }) {
+  const { t } = useTranslation()
+  return (
+    <div className="border-t border-[var(--border-dim)] pt-2 space-y-1">
+      <div className="font-mono text-[11px] text-[var(--text-dim)]">
+        {t('issue.aiSubtasksSummary', {
+          generated: String(result.generated),
+          created: String(result.created),
+        })}
+      </div>
+      <ul className="space-y-1 font-mono text-[11px]">
+        {result.subtasks.map((s) => (
+          <li key={s.key} className="flex gap-2">
+            <span className="text-[var(--text-muted)]">{s.testCaseCode}</span>
+            {s.url ? (
+              <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[var(--accent-cyan)] underline hover:no-underline">
+                {s.key}
+              </a>
+            ) : (
+              <span className="text-[var(--accent-cyan)]">{s.key}</span>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
