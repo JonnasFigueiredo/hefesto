@@ -138,11 +138,11 @@ export function CreateIssueModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
       onMouseDown={onClose}
     >
       <div
-        className="w-full max-w-xl bg-[var(--bg-panel)] border border-[var(--accent-cyan)] shadow-[0_0_30px_rgba(0,212,255,0.15)]"
+        className="w-full max-w-xl bg-[var(--bg-elevated)] border border-[var(--accent-cyan)] shadow-[0_0_30px_rgba(0,212,255,0.15)]"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border-dim)]">
