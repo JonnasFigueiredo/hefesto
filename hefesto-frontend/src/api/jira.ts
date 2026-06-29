@@ -8,6 +8,7 @@ import type {
   JiraProjectRef,
   JiraStatusResponse,
   JiraUser,
+  CoverageReport,
   StoryDraft,
   StoryDraftPayload,
   StoryReview,
@@ -102,6 +103,16 @@ export function createTestSubtasks(payload: {
   context?: string
 }): Promise<TestSubtasksResult> {
   return http<TestSubtasksResult>('/api/jira/ai/test-subtasks', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function coverageReport(payload: {
+  model: string
+  jiraKey: string
+}): Promise<CoverageReport> {
+  return http<CoverageReport>('/api/jira/ai/coverage', {
     method: 'POST',
     body: JSON.stringify(payload),
   })

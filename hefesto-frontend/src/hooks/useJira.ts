@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  coverageReport,
   createIssue,
   createTestSubtasks,
   draftStory,
@@ -91,4 +92,8 @@ export function useReviewStory() {
 
 export function useCreateTestSubtasks() {
   return useMutation({ mutationFn: createTestSubtasks })
+}
+
+export function useCoverageReport() {
+  return useMutation({ mutationFn: coverageReport })
 }

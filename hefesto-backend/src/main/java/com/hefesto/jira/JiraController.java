@@ -160,6 +160,13 @@ public class JiraController {
             workflow.reviewStory(req.model(), req.jiraKey(), req.postComment()));
     }
 
+    /** Matriz de cobertura: critérios de aceite × casos de teste (subtarefas). */
+    @PostMapping("/ai/coverage")
+    public ResponseEntity<?> coverage(@RequestBody AiActionRequests.ReviewStoryRequest req) {
+        if (!service.isConfigured()) return notConfigured();
+        return ResponseEntity.ok(workflow.coverageReport(req.model(), req.jiraKey()));
+    }
+
     /** Gera os casos de teste da história e cria uma subtarefa por caso. */
     @PostMapping("/ai/test-subtasks")
     public ResponseEntity<?> testSubtasks(@RequestBody AiActionRequests.TestSubtasksRequest req) {

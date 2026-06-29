@@ -5,10 +5,15 @@ import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/Button'
 import { JiraStatusBadge } from './JiraStatusBadge'
 import { useAdapters } from '@/hooks/useAdapters'
-import { useCreateTestSubtasks, useReviewStory } from '@/hooks/useJira'
+import { useCoverageReport, useCreateTestSubtasks, useReviewStory } from '@/hooks/useJira'
 import { useTranslation } from '@/i18n/I18nProvider'
 import { cn } from '@/lib/cn'
-import type { JiraIssue, StoryReview, TestSubtasksResult } from '@/types/jira'
+import type {
+  CoverageReport,
+  JiraIssue,
+  StoryReview,
+  TestSubtasksResult,
+} from '@/types/jira'
 
 type Tab = 'description' | 'acceptance' | 'comments' | 'meta'
 
@@ -148,6 +153,7 @@ function AiActions({ issueKey }: { issueKey: string }) {
   const adapters = useAdapters()
   const review = useReviewStory()
   const subtasks = useCreateTestSubtasks()
+  const coverage = useCoverageReport()
 
   const [model, setModel] = useState('')
   const [postComment, setPostComment] = useState(true)
@@ -158,7 +164,7 @@ function AiActions({ issueKey }: { issueKey: string }) {
     if (first) setModel(first.id)
   }, [adapters.data, model])
 
-  const busy = review.isPending || subtasks.isPending
+  const busy = review.isPending || subtasks.isPending || coverage.isPending
   const selectCls =
     'h-7 px-2 bg-[var(--bg-overlay)] border border-[var(--border)] text-[var(--text)] font-mono text-[11px] focus:outline-none focus:border-[var(--accent-cyan)]'
 
@@ -186,6 +192,14 @@ function AiActions({ issueKey }: { issueKey: string }) {
             {review.isPending ? t('issue.aiReviewing') : t('issue.aiReview')}
           </Button>
           <Button
+            variant="secondary"
+            size="sm"
+            disabled={!model || busy}
+            onClick={() => coverage.mutate({ model, jiraKey: issueKey })}
+          >
+            {coverage.isPending ? t('issue.aiCovering') : t('issue.aiCoverage')}
+          </Button>
+          <Button
             variant="primary"
             size="sm"
             disabled={!model || busy}
@@ -201,16 +215,54 @@ function AiActions({ issueKey }: { issueKey: string }) {
         {t('issue.aiPostComment')}
       </label>
 
-      {(review.isError || subtasks.isError) && (
+      {(review.isError || subtasks.isError || coverage.isError) && (
         <div className="font-mono text-[10px] text-[var(--accent-magenta)]">
-          {(review.error || subtasks.error) instanceof Error
-            ? (review.error || subtasks.error)!.message
-            : t('issue.aiError')}
+          {(() => {
+            const err = review.error || subtasks.error || coverage.error
+            return err instanceof Error ? err.message : t('issue.aiError')
+          })()}
         </div>
       )}
 
       {review.data && <ReviewResult review={review.data} />}
       {subtasks.data && <SubtasksResult result={subtasks.data} />}
+      {coverage.data && <CoverageResult report={coverage.data} />}
+    </div>
+  )
+}
+
+function CoverageResult({ report }: { report: CoverageReport }) {
+  const { t } = useTranslation()
+  const pct = report.coveragePercent
+  const color = pct >= 80 ? 'var(--accent-green, #28e07a)' : pct >= 50 ? 'var(--accent-amber, #f5c451)' : 'var(--accent-magenta)'
+  return (
+    <div className="border-t border-[var(--border-dim)] pt-2 space-y-2">
+      <div className="flex items-center gap-3">
+        <span className="font-display text-[20px] font-bold leading-none" style={{ color }}>
+          {pct}
+          <span className="text-[11px] text-[var(--text-muted)]">%</span>
+        </span>
+        <span className="font-display uppercase tracking-[0.12em] text-[10px] text-[var(--text-dim)]">
+          {t('issue.aiCoverageLabel')}
+        </span>
+      </div>
+      <ul className="space-y-1 font-sans text-[12px]">
+        {report.criteria.map((c, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span style={{ color: c.covered ? 'var(--accent-green, #28e07a)' : 'var(--accent-magenta)' }}>
+              {c.covered ? '✓' : '✗'}
+            </span>
+            <span className="flex-1 text-[var(--text)]">
+              {c.criterion}
+              {c.covered && c.byTests.length > 0 && (
+                <span className="ml-2 font-mono text-[10px] text-[var(--text-muted)]">
+                  [{c.byTests.join(', ')}]
+                </span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

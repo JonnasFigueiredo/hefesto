@@ -58,6 +58,7 @@ HefestoMcpTools  ──►  LlmAdapterRegistry
 | `review_story` | `model`, `jiraKey`, `postComment?` | Avalia a prontidão (INVEST) da história: score 0-100, gaps, riscos, critérios faltantes; opcionalmente comenta no Jira. |
 | `generate_test_cases` | `model`, `context?`, `jiraKey?` | Gera cenários TC-NNN (agente QA Sênior) e persiste os casos. |
 | `create_test_subtasks` | `model`, `parentKey`, `context?` | Fecha o ciclo: gera os casos e cria 1 subtarefa por caso sob a história (tipo de subtarefa auto-detectado). |
+| `coverage_report` | `model`, `jiraKey` | Matriz de rastreabilidade: cruza critérios de aceite × casos de teste (subtarefas) e aponta % de cobertura e critérios descobertos. |
 
 ## Resources (contexto que o cliente puxa)
 

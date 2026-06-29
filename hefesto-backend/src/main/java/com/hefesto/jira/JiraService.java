@@ -55,6 +55,11 @@ public class JiraService {
         return new IssueListDto.Page(items, items.size(), nextToken, isLast, maxResults);
     }
 
+    /** Subtarefas de uma issue (via JQL {@code parent = KEY}). Usado p/ cobertura. */
+    public List<IssueListDto> getSubtasks(String parentKey) {
+        return search("parent = " + parentKey, null, 100).issues();
+    }
+
     public IssueDto getIssue(String key) {
         JsonNode issue = client.getIssue(key);
         JsonNode fields = issue.path("fields");

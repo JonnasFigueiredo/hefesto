@@ -115,3 +115,15 @@ export interface TestSubtasksResult {
   created: number
   subtasks: CreatedTestSubtask[]
 }
+
+export interface CriterionCoverage {
+  criterion: string
+  covered: boolean
+  byTests: string[]
+}
+
+export interface CoverageReport {
+  coveragePercent: number
+  criteria: CriterionCoverage[]
+  raw: string
+}

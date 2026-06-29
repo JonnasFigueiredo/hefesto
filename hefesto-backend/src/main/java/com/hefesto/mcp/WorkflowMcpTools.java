@@ -7,6 +7,8 @@ import com.hefesto.jira.JiraService;
 import com.hefesto.jira.dto.CreatedIssueDto;
 import com.hefesto.jira.dto.IssueDto;
 import com.hefesto.jira.dto.IssueListDto;
+import com.hefesto.story.CoverageReport;
+import com.hefesto.story.CoverageService;
 import com.hefesto.story.StoryReview;
 import com.hefesto.story.StoryReviewService;
 import com.hefesto.testcases.TestCase;
@@ -41,14 +43,17 @@ public class WorkflowMcpTools {
     private final JiraService jiraService;
     private final TestCaseService testCaseService;
     private final StoryReviewService storyReviewService;
+    private final CoverageService coverageService;
 
     public WorkflowMcpTools(ChatService chatService, JiraService jiraService,
                             TestCaseService testCaseService,
-                            StoryReviewService storyReviewService) {
+                            StoryReviewService storyReviewService,
+                            CoverageService coverageService) {
         this.chatService = chatService;
         this.jiraService = jiraService;
         this.testCaseService = testCaseService;
         this.storyReviewService = storyReviewService;
+        this.coverageService = coverageService;
     }
 
     // ------------------------------------------------------------------ Jira (ler)
@@ -145,6 +150,16 @@ public class WorkflowMcpTools {
         ChatResponseDto resp = chatService.sendMessage(new ChatRequestDto(
                 model, null, message, AGENT_ANALISTA, null, blankToNull(jiraKey)));
         return resp.content();
+    }
+
+    @Tool(name = "coverage_report",
+          description = "Matriz de rastreabilidade: cruza os critérios de aceite de uma história "
+                      + "com os casos de teste existentes (subtarefas) e retorna a % de cobertura "
+                      + "e, por critério, se está coberto e por quais testes (aponta os descobertos).")
+    public CoverageReport coverageReport(
+            @ToolParam(description = "id do modelo, ex: 'claude-code'") String model,
+            @ToolParam(description = "issue key da história, ex: 'HEF-8'") String jiraKey) {
+        return coverageService.report(model, jiraKey);
     }
 
     @Tool(name = "review_story",
