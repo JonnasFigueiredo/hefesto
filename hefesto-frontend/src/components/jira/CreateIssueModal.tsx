@@ -5,9 +5,11 @@ import { Textarea } from '@/components/ui/Textarea'
 import {
   useCreateIssue,
   useDraftStory,
+  useDraftStoryFromImage,
   useJiraIssueTypes,
   useJiraProjects,
 } from '@/hooks/useJira'
+import type { StoryDraft } from '@/types/jira'
 import { useAdapters } from '@/hooks/useAdapters'
 import type { CreatedIssue } from '@/types/jira'
 import { cn } from '@/lib/cn'
@@ -42,8 +44,10 @@ export function CreateIssueModal({
   // --- assistência de IA ---
   const adapters = useAdapters()
   const draft = useDraftStory()
+  const draftImage = useDraftStoryFromImage()
   const [aiModel, setAiModel] = useState('')
   const [aiContext, setAiContext] = useState('')
+  const [aiImage, setAiImage] = useState<File | null>(null)
 
   // Default do modelo: primeiro adapter disponível.
   useEffect(() => {
@@ -52,18 +56,28 @@ export function CreateIssueModal({
     if (firstAvailable) setAiModel(firstAvailable.id)
   }, [adapters.data, aiModel])
 
+  const aiPending = draft.isPending || draftImage.isPending
+  const aiError = draft.error || draftImage.error
+
+  const applyDraft = (d: StoryDraft) => {
+    if (d.summary) setSummary(d.summary)
+    if (d.description) setDescription(d.description)
+    if (d.acceptanceCriteria?.length) setCriteria(d.acceptanceCriteria.join('\n'))
+  }
+
   const handleGenerate = () => {
-    if (!aiModel || aiContext.trim().length === 0 || draft.isPending) return
-    draft.mutate(
-      { model: aiModel, context: aiContext.trim() },
-      {
-        onSuccess: (d) => {
-          if (d.summary) setSummary(d.summary)
-          if (d.description) setDescription(d.description)
-          if (d.acceptanceCriteria?.length) setCriteria(d.acceptanceCriteria.join('\n'))
-        },
-      },
-    )
+    if (aiPending) return
+    // Com imagem (design de tela): usa o fluxo de visão (Claude). Sem imagem:
+    // exige contexto em texto e usa o modelo selecionado.
+    if (aiImage) {
+      draftImage.mutate(
+        { image: aiImage, context: aiContext.trim() || undefined },
+        { onSuccess: applyDraft },
+      )
+    } else {
+      if (!aiModel || aiContext.trim().length === 0) return
+      draft.mutate({ model: aiModel, context: aiContext.trim() }, { onSuccess: applyDraft })
+    }
   }
 
   // Seleciona um projeto padrão assim que a lista chega: o sugerido (se válido)
@@ -170,6 +184,38 @@ export function CreateIssueModal({
               onChange={(e) => setAiContext(e.target.value)}
               placeholder={t('jira.aiContextPlaceholder')}
             />
+
+            {/* Anexar design de tela (imagem) — usa modelo com visão (Claude) */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="inline-flex items-center gap-2 h-7 px-3 cursor-pointer border border-[var(--border)] text-[var(--text-dim)] hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] font-display uppercase tracking-[0.12em] text-[10px] transition-colors">
+                🖼️ {t('jira.aiImageAttach')}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => setAiImage(e.target.files?.[0] ?? null)}
+                />
+              </label>
+              {aiImage && (
+                <span className="font-mono text-[10px] text-[var(--accent-cyan)] flex items-center gap-2">
+                  {aiImage.name}
+                  <button
+                    type="button"
+                    onClick={() => setAiImage(null)}
+                    className="text-[var(--text-dim)] hover:text-[var(--accent-magenta)]"
+                    aria-label={t('jira.aiImageRemove')}
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+            </div>
+            {aiImage && (
+              <div className="font-mono text-[10px] text-[var(--text-muted)]">
+                {t('jira.aiImageNote')}
+              </div>
+            )}
+
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[10px] text-[var(--text-muted)]">
                 {t('jira.aiHint')}
@@ -179,14 +225,14 @@ export function CreateIssueModal({
                 variant="primary"
                 size="sm"
                 onClick={handleGenerate}
-                disabled={!aiModel || aiContext.trim().length === 0 || draft.isPending}
+                disabled={aiPending || (!aiImage && (!aiModel || aiContext.trim().length === 0))}
               >
-                {draft.isPending ? t('jira.aiGenerating') : t('jira.aiGenerate')}
+                {aiPending ? t('jira.aiGenerating') : t('jira.aiGenerate')}
               </Button>
             </div>
-            {draft.isError && (
+            {aiError && (
               <div className="font-mono text-[10px] text-[var(--accent-magenta)]">
-                {draft.error instanceof Error ? draft.error.message : t('jira.aiError')}
+                {aiError instanceof Error ? aiError.message : t('jira.aiError')}
               </div>
             )}
           </div>

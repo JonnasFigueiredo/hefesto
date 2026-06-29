@@ -148,6 +148,9 @@ export const translations: Record<Locale, Dict> = {
     'jira.aiGenerate': '✨ GERAR RASCUNHO',
     'jira.aiGenerating': 'GERANDO...',
     'jira.aiError': 'Falha ao gerar rascunho',
+    'jira.aiImageAttach': 'ANEXAR DESIGN',
+    'jira.aiImageNote': '→ imagem usa Claude (visão); o texto é contexto opcional',
+    'jira.aiImageRemove': 'remover imagem',
 
     // JQL search
     'jql.execute': 'EXECUTAR',
@@ -412,6 +415,9 @@ export const translations: Record<Locale, Dict> = {
     'jira.aiGenerate': '✨ GENERATE DRAFT',
     'jira.aiGenerating': 'GENERATING...',
     'jira.aiError': 'Failed to generate draft',
+    'jira.aiImageAttach': 'ATTACH DESIGN',
+    'jira.aiImageNote': '→ image uses Claude (vision); text is optional context',
+    'jira.aiImageRemove': 'remove image',
 
     // JQL search
     'jql.execute': 'EXECUTE',

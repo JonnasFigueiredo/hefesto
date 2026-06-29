@@ -71,6 +71,20 @@ export function draftStory(payload: StoryDraftPayload): Promise<StoryDraft> {
   })
 }
 
+export async function draftStoryFromImage(image: File, context?: string): Promise<StoryDraft> {
+  // multipart: não usa o helper http() (que força Content-Type JSON);
+  // o browser define o boundary do form-data sozinho.
+  const fd = new FormData()
+  fd.append('image', image)
+  if (context) fd.append('context', context)
+  const res = await fetch('/api/jira/ai/draft-story-from-image', { method: 'POST', body: fd })
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(`${res.status} ${res.statusText} :: ${body}`)
+  }
+  return (await res.json()) as StoryDraft
+}
+
 export function reviewStory(payload: {
   model: string
   jiraKey: string

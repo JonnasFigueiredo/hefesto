@@ -3,6 +3,7 @@ import {
   createIssue,
   createTestSubtasks,
   draftStory,
+  draftStoryFromImage,
   getIssue,
   getJiraStatus,
   getProjectIssueTypes,
@@ -68,6 +69,13 @@ export function useCreateIssue() {
 
 export function useDraftStory() {
   return useMutation({ mutationFn: draftStory })
+}
+
+export function useDraftStoryFromImage() {
+  return useMutation({
+    mutationFn: ({ image, context }: { image: File; context?: string }) =>
+      draftStoryFromImage(image, context),
+  })
 }
 
 export function useReviewStory() {

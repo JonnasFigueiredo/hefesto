@@ -34,14 +34,17 @@ public class JiraController {
     private final JiraService service;
     private final JiraProperties props;
     private final StoryDraftService storyDrafts;
+    private final com.hefesto.story.ImageStoryDraftService imageStoryDrafts;
     private final com.hefesto.mcp.WorkflowMcpTools workflow;
 
     public JiraController(JiraService service, JiraProperties props,
                           StoryDraftService storyDrafts,
+                          com.hefesto.story.ImageStoryDraftService imageStoryDrafts,
                           com.hefesto.mcp.WorkflowMcpTools workflow) {
         this.service = service;
         this.props = props;
         this.storyDrafts = storyDrafts;
+        this.imageStoryDrafts = imageStoryDrafts;
         this.workflow = workflow;
     }
 
@@ -127,6 +130,26 @@ public class JiraController {
     @PostMapping("/ai/draft-story")
     public ResponseEntity<?> draftStory(@RequestBody StoryDraftRequest req) {
         return ResponseEntity.ok(storyDrafts.draft(req));
+    }
+
+    /** Gera um rascunho de história a partir de uma imagem de tela/design. */
+    @PostMapping(value = "/ai/draft-story-from-image", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> draftFromImage(
+            @org.springframework.web.bind.annotation.RequestParam("image") org.springframework.web.multipart.MultipartFile image,
+            @org.springframework.web.bind.annotation.RequestParam(value = "context", required = false) String context
+    ) throws java.io.IOException {
+        if (image == null || image.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "no_image", "message", "Envie uma imagem."));
+        }
+        String name = image.getOriginalFilename() == null ? "" : image.getOriginalFilename();
+        String suffix = name.contains(".") ? name.substring(name.lastIndexOf('.')) : ".png";
+        java.nio.file.Path tmp = java.nio.file.Files.createTempFile("hefesto-design-", suffix);
+        try {
+            image.transferTo(tmp);
+            return ResponseEntity.ok(imageStoryDrafts.draftFromImage(tmp, context));
+        } finally {
+            java.nio.file.Files.deleteIfExists(tmp);
+        }
     }
 
     /** Avalia a prontidão (INVEST) de uma história; opcionalmente comenta no Jira. */
