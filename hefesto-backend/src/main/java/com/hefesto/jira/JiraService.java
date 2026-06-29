@@ -137,6 +137,23 @@ public class JiraService {
         return out;
     }
 
+    /**
+     * Nome do tipo de subtarefa do projeto, já localizado (ex: "Subtask",
+     * "Subtarefa"). Auto-detecta pra não depender de um nome fixo. Fallback:
+     * "Sub-task".
+     */
+    public String resolveSubtaskType(String projectKey) {
+        JsonNode types = client.getProject(projectKey).path("issueTypes");
+        if (types.isArray()) {
+            for (JsonNode t : types) {
+                if (t.path("subtask").asBoolean(false)) {
+                    return t.path("name").asText("Sub-task");
+                }
+            }
+        }
+        return "Sub-task";
+    }
+
     // ---------- escrita (criar / comentar) ----------
 
     /**

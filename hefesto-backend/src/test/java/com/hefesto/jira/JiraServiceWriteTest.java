@@ -135,6 +135,21 @@ class JiraServiceWriteTest {
     }
 
     @Test
+    void resolveSubtaskType_picksLocalizedSubtaskType() {
+        when(client.getProject("HEF")).thenReturn(json(
+                "{\"issueTypes\":[{\"name\":\"História\",\"subtask\":false},"
+                + "{\"name\":\"Subtask\",\"subtask\":true}]}"));
+        assertThat(service.resolveSubtaskType("HEF")).isEqualTo("Subtask");
+    }
+
+    @Test
+    void resolveSubtaskType_fallsBackWhenNoneFound() {
+        when(client.getProject("X")).thenReturn(json(
+                "{\"issueTypes\":[{\"name\":\"Task\",\"subtask\":false}]}"));
+        assertThat(service.resolveSubtaskType("X")).isEqualTo("Sub-task");
+    }
+
+    @Test
     void transitionIssue_unknownNameThrowsWithOptions() {
         when(client.getTransitions("PROJ-1")).thenReturn(json(
                 "{\"transitions\":[{\"id\":\"11\",\"name\":\"To Do\"}]}"));

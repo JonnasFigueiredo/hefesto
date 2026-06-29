@@ -56,6 +56,7 @@ HefestoMcpTools  ──►  LlmAdapterRegistry
 |---|---|---|
 | `analyze_requirements` | `model`, `requirementText?`, `jiraKey?` | Analisa requisito (agente Analista de Negócios): gaps, riscos, critérios. |
 | `generate_test_cases` | `model`, `context?`, `jiraKey?` | Gera cenários TC-NNN (agente QA Sênior) e persiste os casos. |
+| `create_test_subtasks` | `model`, `parentKey`, `context?` | Fecha o ciclo: gera os casos e cria 1 subtarefa por caso sob a história (tipo de subtarefa auto-detectado). |
 
 ## Endpoints
 

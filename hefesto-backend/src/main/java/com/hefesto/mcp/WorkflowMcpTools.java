@@ -13,6 +13,7 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -143,6 +144,82 @@ public class WorkflowMcpTools {
 
     /** Resultado de {@link #generateTestCases}. */
     public record GeneratedTestCases(String narrative, List<TestCase> testCases) {}
+
+    /** Uma subtarefa criada a partir de um caso de teste. */
+    public record CreatedTestSubtask(String testCaseCode, String key, String url) {}
+
+    /** Resultado de {@link #createTestSubtasks}. */
+    public record TestSubtasksResult(
+        String parentKey, int generated, int created, List<CreatedTestSubtask> subtasks) {}
+
+    @Tool(name = "create_test_subtasks",
+          description = "Fecha o ciclo de QA: gera cenários de teste a partir de uma história do "
+                      + "Jira (com o agente QA Sênior) e cria UMA subtarefa por caso de teste sob "
+                      + "essa história. Retorna as keys/links das subtarefas criadas.")
+    public TestSubtasksResult createTestSubtasks(
+            @ToolParam(description = "id do modelo, ex: 'claude-code'") String model,
+            @ToolParam(description = "issue key da história pai, ex: 'HEF-8'") String parentKey,
+            @ToolParam(description = "instrução/contexto extra pra geração", required = false) String context) {
+
+        String message = (context == null || context.isBlank())
+                ? "Gere casos de teste cobrindo a história (positivos, negativos e edge)."
+                : context;
+
+        // 1. Gera + persiste os casos (reusa o agente QA via ChatService).
+        ChatResponseDto resp = chatService.sendMessage(new ChatRequestDto(
+                model, null, message, AGENT_QA, null, blankToNull(parentKey)));
+        List<TestCase> cases = testCaseService.findByConversation(resp.conversationId());
+
+        // 2. Descobre o tipo de subtarefa localizado do projeto do parent.
+        String projectKey = projectKeyOf(parentKey);
+        String subtaskType = jiraService.resolveSubtaskType(projectKey);
+
+        // 3. Cria uma subtarefa por caso.
+        List<CreatedTestSubtask> created = new ArrayList<>();
+        for (TestCase tc : cases) {
+            String summary = "[" + tc.code() + "] " + safe(tc.title());
+            CreatedIssueDto sub = jiraService.createSubtask(
+                    parentKey, subtaskType, summary, formatTestCase(tc));
+            created.add(new CreatedTestSubtask(tc.code(), sub.key(), sub.url()));
+        }
+        return new TestSubtasksResult(parentKey, cases.size(), created.size(), created);
+    }
+
+    private static String projectKeyOf(String issueKey) {
+        int dash = issueKey == null ? -1 : issueKey.indexOf('-');
+        if (dash <= 0) {
+            throw new IllegalArgumentException(
+                    "parentKey inválido: '" + issueKey + "' (esperado formato PROJ-123)");
+        }
+        return issueKey.substring(0, dash).strip();
+    }
+
+    /** Monta a descrição da subtarefa a partir do caso de teste. */
+    static String formatTestCase(TestCase tc) {
+        StringBuilder sb = new StringBuilder();
+        if (tc.category() != null || tc.priority() != null) {
+            sb.append("Categoria: ").append(safe(tc.category()))
+              .append("  |  Prioridade: ").append(safe(tc.priority())).append('\n');
+        }
+        if (tc.preconditions() != null && !tc.preconditions().isBlank()) {
+            sb.append("\nPré-condições:\n").append(tc.preconditions().strip()).append('\n');
+        }
+        if (tc.steps() != null && !tc.steps().isEmpty()) {
+            sb.append("\nPassos:\n");
+            int i = 1;
+            for (String step : tc.steps()) {
+                sb.append(i++).append(". ").append(step == null ? "" : step.strip()).append('\n');
+            }
+        }
+        if (tc.expectedResult() != null && !tc.expectedResult().isBlank()) {
+            sb.append("\nResultado esperado:\n").append(tc.expectedResult().strip()).append('\n');
+        }
+        return sb.toString().strip();
+    }
+
+    private static String safe(String s) {
+        return s == null ? "" : s;
+    }
 
     @Tool(name = "generate_test_cases",
           description = "Gera cenários de teste estruturados (formato TC-NNN) com o agente QA "
