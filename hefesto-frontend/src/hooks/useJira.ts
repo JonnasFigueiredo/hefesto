@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createIssue, getIssue, getJiraStatus, searchIssues } from '@/api/jira'
+import {
+  createIssue,
+  getIssue,
+  getJiraStatus,
+  getProjectIssueTypes,
+  getProjects,
+  searchIssues,
+} from '@/api/jira'
 
 export function useJiraStatus() {
   return useQuery({
@@ -24,6 +31,24 @@ export function useJiraIssue(key: string | null) {
     queryFn: () => getIssue(key as string),
     enabled: !!key,
     staleTime: 10_000,
+  })
+}
+
+export function useJiraProjects(enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['jira', 'projects'],
+    queryFn: getProjects,
+    enabled,
+    staleTime: 60_000,
+  })
+}
+
+export function useJiraIssueTypes(projectKey: string | null) {
+  return useQuery({
+    queryKey: ['jira', 'issuetypes', projectKey],
+    queryFn: () => getProjectIssueTypes(projectKey as string),
+    enabled: !!projectKey,
+    staleTime: 60_000,
   })
 }
 

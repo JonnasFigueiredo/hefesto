@@ -164,6 +164,28 @@ public class JiraClient {
         return post(uri, Map.of("body", adfBody));
     }
 
+    /** Lista projetos visíveis pro usuário (paginado; 1ª página de 50). */
+    public JsonNode searchProjects() {
+        ensureConfigured();
+        String uri = UriComponentsBuilder.fromHttpUrl(props.url())
+            .path("/rest/api/3/project/search")
+            .queryParam("maxResults", 50)
+            .queryParam("orderBy", "name")
+            .build()
+            .toUriString();
+        return get(uri);
+    }
+
+    /** Detalhe de um projeto, incluindo {@code issueTypes} (com flag subtask). */
+    public JsonNode getProject(String key) {
+        ensureConfigured();
+        String uri = UriComponentsBuilder.fromHttpUrl(props.url())
+            .path("/rest/api/3/project/{key}")
+            .buildAndExpand(key)
+            .toUriString();
+        return get(uri);
+    }
+
     /** Identidade do usuário autenticado — bom pra teste de credenciais. */
     public JsonNode getCurrentUser() {
         ensureConfigured();

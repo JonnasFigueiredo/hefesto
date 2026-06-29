@@ -1,14 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
-import { useCreateIssue } from '@/hooks/useJira'
+import { useCreateIssue, useJiraIssueTypes, useJiraProjects } from '@/hooks/useJira'
 import type { CreatedIssue } from '@/types/jira'
+import { cn } from '@/lib/cn'
 import { useTranslation } from '@/i18n/I18nProvider'
 
 interface CreateIssueModalProps {
   open: boolean
-  /** Pré-preenche o projeto (ex: derivado da última issue aberta). */
+  /** Pré-seleciona o projeto (ex: derivado da última issue aberta). */
   defaultProjectKey?: string
   onClose: () => void
   onCreated: (issue: CreatedIssue) => void
@@ -23,16 +24,38 @@ export function CreateIssueModal({
   const { t } = useTranslation()
   const create = useCreateIssue()
 
-  const [projectKey, setProjectKey] = useState(defaultProjectKey)
+  const projects = useJiraProjects(open)
+  const [projectKey, setProjectKey] = useState('')
+  const issueTypes = useJiraIssueTypes(projectKey || null)
+  const [issueType, setIssueType] = useState('')
+
   const [summary, setSummary] = useState('')
   const [description, setDescription] = useState('')
   const [criteria, setCriteria] = useState('')
-  const [issueType, setIssueType] = useState('Story')
+
+  // Seleciona um projeto padrão assim que a lista chega: o sugerido (se válido)
+  // ou o primeiro. Evita projeto inexistente como o erro que motivou os dropdowns.
+  useEffect(() => {
+    if (projectKey || !projects.data?.length) return
+    const fromDefault = projects.data.find((p) => p.key === defaultProjectKey)
+    setProjectKey(fromDefault?.key ?? projects.data[0].key)
+  }, [projects.data, defaultProjectKey, projectKey])
+
+  // Sempre que os tipos do projeto chegam, garante um tipo válido selecionado.
+  useEffect(() => {
+    if (!issueTypes.data?.length) return
+    if (!issueTypes.data.includes(issueType)) {
+      setIssueType(issueTypes.data[0])
+    }
+  }, [issueTypes.data, issueType])
 
   if (!open) return null
 
   const canSubmit =
-    projectKey.trim().length > 0 && summary.trim().length > 0 && !create.isPending
+    projectKey.trim().length > 0 &&
+    issueType.trim().length > 0 &&
+    summary.trim().length > 0 &&
+    !create.isPending
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,16 +66,15 @@ export function CreateIssueModal({
       .filter((l) => l.length > 0)
     create.mutate(
       {
-        projectKey: projectKey.trim(),
+        projectKey,
         summary: summary.trim(),
         description: description.trim() || undefined,
         acceptanceCriteria: acceptanceCriteria.length ? acceptanceCriteria : undefined,
-        issueType: issueType.trim() || undefined,
+        issueType,
       },
       {
         onSuccess: (created) => {
           onCreated(created)
-          // Reset pra próxima criação.
           setSummary('')
           setDescription('')
           setCriteria('')
@@ -60,6 +82,12 @@ export function CreateIssueModal({
       },
     )
   }
+
+  const selectCls = cn(
+    'w-full h-9 px-3 bg-[var(--bg-overlay)] border border-[var(--border)] text-[var(--text)]',
+    'focus:outline-none focus:border-[var(--accent-cyan)] focus:shadow-[0_0_0_1px_var(--accent-cyan),0_0_12px_rgba(0,212,255,0.2)]',
+    'font-mono text-[12px] transition-all',
+  )
 
   return (
     <div
@@ -84,18 +112,39 @@ export function CreateIssueModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div className="grid grid-cols-[1fr_140px] gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Field label={t('jira.fieldProject')}>
-              <Input
-                mono
+              <select
+                className={selectCls}
                 value={projectKey}
-                onChange={(e) => setProjectKey(e.target.value.toUpperCase())}
-                placeholder="PROJ"
-                autoFocus
-              />
+                onChange={(e) => {
+                  setProjectKey(e.target.value)
+                  setIssueType('')
+                }}
+                disabled={projects.isLoading}
+              >
+                {projects.isLoading && <option>...</option>}
+                {projects.data?.map((p) => (
+                  <option key={p.key} value={p.key}>
+                    {p.key} — {p.name}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label={t('jira.fieldType')}>
-              <Input mono value={issueType} onChange={(e) => setIssueType(e.target.value)} />
+              <select
+                className={selectCls}
+                value={issueType}
+                onChange={(e) => setIssueType(e.target.value)}
+                disabled={issueTypes.isLoading || !projectKey}
+              >
+                {issueTypes.isLoading && <option>...</option>}
+                {issueTypes.data?.map((tp) => (
+                  <option key={tp} value={tp}>
+                    {tp}
+                  </option>
+                ))}
+              </select>
             </Field>
           </div>
 
@@ -104,6 +153,7 @@ export function CreateIssueModal({
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               placeholder={t('jira.fieldSummaryPlaceholder')}
+              autoFocus
             />
           </Field>
 

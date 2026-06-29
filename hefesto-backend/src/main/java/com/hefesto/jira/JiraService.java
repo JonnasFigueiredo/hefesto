@@ -16,6 +16,7 @@ import com.hefesto.jira.dto.CreatedIssueDto;
 import com.hefesto.jira.dto.IssueDto;
 import com.hefesto.jira.dto.IssueListDto;
 import com.hefesto.jira.dto.JiraStatusDto;
+import com.hefesto.jira.dto.ProjectRef;
 import com.hefesto.jira.dto.JiraUserDto;
 
 @Service
@@ -104,6 +105,36 @@ public class JiraService {
     /** Pra usar como health check/test connection no Settings. */
     public JiraUserDto getCurrentUser() {
         return parseUser(client.getCurrentUser());
+    }
+
+    /** Projetos visíveis pro usuário (pro dropdown de criação). */
+    public List<ProjectRef> listProjects() {
+        JsonNode values = client.searchProjects().path("values");
+        List<ProjectRef> out = new ArrayList<>();
+        if (values.isArray()) {
+            for (JsonNode p : values) {
+                out.add(new ProjectRef(p.path("key").asText(), p.path("name").asText("")));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Nomes dos tipos de issue de topo (não-subtarefa) que podem ser criados num
+     * projeto — já localizados (ex: "História", "Tarefa", "Epic"). Evita o
+     * usuário chutar "Story" num Jira em português.
+     */
+    public List<String> listCreatableIssueTypes(String projectKey) {
+        JsonNode types = client.getProject(projectKey).path("issueTypes");
+        List<String> out = new ArrayList<>();
+        if (types.isArray()) {
+            for (JsonNode t : types) {
+                if (!t.path("subtask").asBoolean(false)) {
+                    out.add(t.path("name").asText());
+                }
+            }
+        }
+        return out;
     }
 
     // ---------- escrita (criar / comentar) ----------

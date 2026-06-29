@@ -5,6 +5,7 @@ import type {
   JiraComment,
   JiraIssue,
   JiraIssuePage,
+  JiraProjectRef,
   JiraStatusResponse,
   JiraUser,
 } from '@/types/jira'
@@ -49,4 +50,12 @@ export function createIssue(payload: CreateIssuePayload): Promise<CreatedIssue> 
     method: 'POST',
     body: JSON.stringify(payload),
   })
+}
+
+export function getProjects(): Promise<JiraProjectRef[]> {
+  return http<JiraProjectRef[]>('/api/jira/projects')
+}
+
+export function getProjectIssueTypes(key: string): Promise<string[]> {
+  return http<string[]>(`/api/jira/projects/${encodeURIComponent(key)}/issuetypes`)
 }

@@ -102,6 +102,18 @@ public class JiraController {
         return ResponseEntity.ok(list);
     }
 
+    @GetMapping("/projects")
+    public ResponseEntity<?> projects() {
+        if (!service.isConfigured()) return notConfigured();
+        return ResponseEntity.ok(service.listProjects());
+    }
+
+    @GetMapping("/projects/{key}/issuetypes")
+    public ResponseEntity<?> issueTypes(@PathVariable String key) {
+        if (!service.isConfigured()) return notConfigured();
+        return ResponseEntity.ok(service.listCreatableIssueTypes(key));
+    }
+
     /** Cria uma história/tarefa. Default de tipo "Story". */
     @PostMapping("/issues")
     public ResponseEntity<?> create(@RequestBody CreateIssueRequest req) {

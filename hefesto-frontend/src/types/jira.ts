@@ -74,3 +74,8 @@ export interface CreatedIssue {
   id: string | null
   url: string | null
 }
+
+export interface JiraProjectRef {
+  key: string
+  name: string
+}
