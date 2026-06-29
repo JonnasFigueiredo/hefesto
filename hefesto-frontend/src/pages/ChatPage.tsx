@@ -27,7 +27,7 @@ export function ChatPage() {
         </h1>
       </div>
 
-      <div className="flex-1 flex gap-4 min-h-0">
+      <div className="flex-1 flex gap-4 min-h-0 min-w-0">
         <ConversationList />
         <ChatWindow />
       </div>

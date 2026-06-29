@@ -55,8 +55,8 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
   // assistant
   const meta = message.meta
   return (
-    <div className="flex justify-start">
-      <div className="max-w-[85%] w-full">
+    <div className="flex justify-start min-w-0">
+      <div className="max-w-[85%] w-full min-w-0">
         <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-[0.18em] mb-1 flex items-center gap-3">
           <span className="text-[var(--accent-cyan)]">
             {meta?.adapterId?.toUpperCase() ?? 'ASSISTANT'}
@@ -94,7 +94,7 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
           ) : (
           <div
             className={cn(
-              'prose-hefesto',
+              'prose-hefesto min-w-0 max-w-full break-words [overflow-wrap:anywhere]',
               streaming && message.content.length > 0 && 'streaming-cursor',
             )}
           >
@@ -121,7 +121,7 @@ export function MessageBubble({ message, streaming = false }: MessageBubbleProps
                   )
                 },
                 pre: ({ children }) => (
-                  <pre className="my-2 p-3 bg-[var(--bg-overlay)] border border-[var(--border-dim)] overflow-x-auto font-mono text-[12px] text-[var(--text)]">
+                  <pre className="my-2 p-3 bg-[var(--bg-overlay)] border border-[var(--border-dim)] overflow-x-auto max-w-full font-mono text-[12px] text-[var(--text)]">
                     {children}
                   </pre>
                 ),
