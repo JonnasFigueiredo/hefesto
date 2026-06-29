@@ -18,6 +18,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Cliente HTTP para a Jira Cloud REST API v3. Faz auth básica com email +
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class JiraClient {
 
     private static final Logger log = LoggerFactory.getLogger(JiraClient.class);
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final JiraProperties props;
     private final RestClient httpClient;
@@ -284,14 +286,29 @@ public class JiraClient {
         return "Basic " + encoded;
     }
 
-    private static String extractMessage(String body) {
+    /**
+     * Extrai uma mensagem legível do corpo de erro do Jira. A API v3 reporta
+     * erros de duas formas: {@code errorMessages} (lista, ex: issue não existe)
+     * e {@code errors} (objeto campo→motivo, ex: criação com campo inválido).
+     * Surfaceia ambas — sem isso, um 400 de "issuetype inválido" virava só
+     * "errors" e ficava impossível diagnosticar.
+     */
+    static String extractMessage(String body) {
         if (body == null || body.isBlank()) return "(sem corpo)";
-        // Tenta extrair errorMessages[0]; senão devolve truncado.
-        int idx = body.indexOf("\"errorMessages\"");
-        if (idx >= 0) {
-            int q1 = body.indexOf('"', body.indexOf('[', idx));
-            int q2 = body.indexOf('"', q1 + 1);
-            if (q1 > 0 && q2 > q1) return body.substring(q1 + 1, q2);
+        try {
+            JsonNode n = MAPPER.readTree(body);
+            java.util.List<String> parts = new java.util.ArrayList<>();
+            JsonNode messages = n.path("errorMessages");
+            if (messages.isArray()) {
+                messages.forEach(m -> parts.add(m.asText()));
+            }
+            JsonNode errors = n.path("errors");
+            if (errors.isObject()) {
+                errors.fields().forEachRemaining(e -> parts.add(e.getKey() + ": " + e.getValue().asText()));
+            }
+            if (!parts.isEmpty()) return String.join("; ", parts);
+        } catch (Exception ignore) {
+            // corpo não-JSON: cai no truncamento abaixo.
         }
         return body.length() > 200 ? body.substring(0, 200) + "..." : body;
     }
