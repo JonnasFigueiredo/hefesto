@@ -1,9 +1,8 @@
 # Hefesto
 
-> Plataforma de QA/PO assistida por IA, exposta como servidor MCP.
-> Analisa requisitos (texto ou imagem de tela), cria e revisa histórias no Jira,
-> gera casos de teste e mede cobertura — pela interface web ou por linguagem
-> natural via MCP. Conecta múltiplos modelos de LLM (Claude e modelos locais `.gguf`).
+> Da ideia ao teste, sem trocar de aba. Uma plataforma de QA/PO assistida por IA —
+> também exposta como **servidor MCP** — que transforma um requisito (texto ou
+> print de tela) em história no Jira, casos de teste e relatório de cobertura.
 
 ```
    _   _   _____   _____   _____   _____   _____   _____
@@ -15,97 +14,91 @@
 ```
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-cyan)](LICENSE)
-[![Java 17+](https://img.shields.io/badge/Java-17+-cyan)](#requisitos)
-[![Node 20+](https://img.shields.io/badge/Node-20+-cyan)](#requisitos)
+[![Java 17+](https://img.shields.io/badge/Java-17+-cyan)](#começando)
+[![Node 20+](https://img.shields.io/badge/Node-20+-cyan)](#começando)
 [![MCP server](https://img.shields.io/badge/MCP-server-cyan)](./docs/MCP.md)
 
-<!-- ╭───────────────────────────────────────────────────────────────╮
-     │  MÍDIA — vídeo de demonstração (hero)                          │
-     │  Coloque o arquivo em docs/media/ e troque o bloco abaixo por: │
-     │  <p align="center"><img src="docs/media/demo.gif" width="820"  │
-     │     alt="Demonstração do Hefesto"></p>                         │
-     ╰───────────────────────────────────────────────────────────────╯ -->
+<!-- MÍDIA — vídeo de demonstração (hero). Troque o bloco abaixo por:
+     <p align="center"><img src="docs/media/demo.gif" width="820" alt="Demonstração do Hefesto"></p> -->
 <p align="center"><sub><i>[ vídeo de demonstração — adicionar em docs/media/ ]</i></sub></p>
 
 ---
 
 ## Sumário
 
-- [Pra quem é](#pra-quem-é)
+- [Visão geral](#visão-geral)
 - [O que faz](#o-que-faz)
 - [Servidor MCP](#servidor-mcp)
 - [Fluxos de trabalho](#fluxos-de-trabalho)
-- [Requisitos](#requisitos)
-- [Setup em 5 minutos](#setup-em-5-minutos)
-- [Configuração](#configuração)
+- [Começando](#começando)
+- [Arquitetura e stack](#arquitetura-e-stack)
 - [Agentes especialistas](#agentes-especialistas)
-- [Arquitetura](#arquitetura)
-- [Stack](#stack)
-- [Estrutura do repositório](#estrutura-do-repositório)
 - [Roadmap](#roadmap)
-- [Contribuindo](#contribuindo)
-- [Licença](#licença)
 
 ---
 
-## Pra quem é
+## Visão geral
 
-Hefesto é para **QA's, devs e POs** que usam IA no dia a dia e perdem tempo
-costurando contexto manualmente entre ferramentas: copiar requisito, colar no
-chat, abrir o Jira, criar história, gerar casos, anexar evidência, montar
-documento.
+Escrever a história, revisar, criar os casos de teste, anexar evidência, atualizar
+o Jira. No papel é simples; na prática vira um vaivém entre chat, Jira, planilha e
+documento — cada um perdendo contexto do anterior. O Hefesto fecha esse ciclo num
+lugar só, com a IA fazendo o trabalho pesado e o Jira como fonte da verdade.
 
-O Hefesto concentra esse ciclo em um só lugar — pela interface web ou direto do
-cliente MCP (Claude Code/Desktop), por linguagem natural.
+A partir de um requisito — em **texto ou até um print de tela** — o Hefesto:
+
+1. **escreve a história** (título, descrição e critérios de aceite);
+2. **avalia a prontidão** dela com critério INVEST (gaps, riscos, score);
+3. **gera os casos de teste** e os cria como subtarefas no Jira;
+4. **mede a cobertura** dos critérios pelos testes, apontando o que ficou de fora.
+
+E faz isso de dois jeitos. Pela **interface web**, num fluxo guiado de ponta a
+ponta. E por **linguagem natural**: como o backend é também um **servidor MCP**, o
+mesmo poder está dentro do seu Claude Code/Desktop — *"analise este requisito,
+crie a história no projeto X e gere os casos de teste como subtarefas"* — sem sair
+do editor.
+
+Feito para **QA, dev e PO** que já usam IA no dia a dia e querem parar de costurar
+contexto na mão.
 
 ## O que faz
 
-### Servidor MCP
+**Do requisito à história, com IA.** Cole o requisito ou anexe o design da tela —
+o Hefesto entende o que está na imagem (campos, botões, fluxos) e devolve uma
+história pronta: título, descrição no formato de valor e critérios de aceite
+testáveis. Revise e crie no Jira em um clique.
 
-O backend **é também um servidor MCP** (sobre SSE). Qualquer cliente MCP — Claude
-Code, Claude Desktop — opera o Hefesto por linguagem natural: **14 tools**,
-**2 resources** e **3 prompts**. Exemplo: *"revise a prontidão da PROJ-123 e gere
-os casos de teste como subtarefas"*. Referência completa em
-[docs/MCP.md](./docs/MCP.md).
+**Qualidade antes do código.** A revisão de prontidão aplica o critério **INVEST**
+e devolve um score de 0 a 100 com gaps, riscos e critérios faltantes — e, se você
+quiser, registra tudo como comentário na própria issue. O time entra no
+desenvolvimento com a história já madura.
 
-### Fluxos de IA do ciclo QA/PO
+**Teste rastreável.** A geração de casos cria **uma subtarefa por caso** sob a
+história, no formato `TC-NNN`. Em seguida, a **matriz de cobertura** cruza
+critérios de aceite com os testes e mostra, preto no branco, quais critérios ainda
+estão descobertos — o tipo de planilha que QA sênior monta na mão.
 
-- **Rascunho de história** a partir de requisitos em texto **ou de uma imagem de
-  tela/design** (visão) — preenche título, descrição e critérios de aceite.
-- **Revisão de prontidão (INVEST)** — score de 0 a 100, gaps, riscos e critérios
-  faltantes; opcionalmente registra a revisão como comentário no Jira.
-- **Geração de casos de teste**, criando **uma subtarefa por caso** no Jira.
-- **Matriz de cobertura** — cruza os critérios de aceite com os casos de teste e
-  aponta os critérios **descobertos**.
+**Jira de verdade (ler e escrever).** Busca por JQL, leitura de
+descrição/critérios/comentários e escrita completa: criar, atualizar, transicionar
+e comentar issues e subtarefas (REST API v3), com tipos já localizados.
 
-### Jira completo (ler e escrever)
+**Multi-LLM, inclusive offline.** Escolha o modelo por tarefa: Claude (oficial, e o
+de visão para imagens), **modelos locais `.gguf`** via `llama-server` (100%
+offline, sem nuvem), Copilot via extensão VS Code. Trocar de modelo é um dropdown;
+adicionar um novo é implementar uma interface.
 
-Busca por JQL, leitura de descrição/critérios/comentários, e escrita: **criar,
-atualizar, transicionar e comentar** issues e subtarefas (REST API v3). Projeto e
-tipo de issue vêm de listas, com tipos já localizados (ex.: "História"/"Subtask").
+**Execução e evidências.** Cards interativos por caso, anexo de evidências
+(screenshots/logs), relatório HTML/PDF com sumário e evidências inline, e um
+dashboard de Analytics (KPIs, latência, série temporal). Tudo em SQLite, sem
+infraestrutura.
 
-### Multi-LLM plugável
-
-Claude Code (oficial), **modelos locais `.gguf`** via `llama-server` (llama.cpp,
-100% offline), GitHub Copilot via extensão VS Code, e stubs de Gemini/Codex/
-Anthropic. A seleção é feita na interface; adicionar um modelo é implementar a
-interface `LlmAdapter`.
-
-### Agentes, casos de teste e relatórios
-
-Cada `.md` em `agentes/` é um especialista (com hot reload). Extração automática
-de casos `TC-NNN` em cards interativos, evidências (screenshots/logs) por caso em
-SQLite, relatório PDF com sumário e evidências inline, e dashboard de Analytics
-(KPIs, latência, série temporal). Persistência local em SQLite, sem infraestrutura.
-
-<!-- MÍDIA — screenshots da interface (chat, Jira, analytics).
-     Sugestão: docs/media/ui-chat.png, ui-jira.png, ui-analytics.png -->
+<!-- MÍDIA — screenshots da interface (chat, Jira, analytics). docs/media/ui-*.png -->
 <p align="center"><sub><i>[ screenshots da interface — adicionar em docs/media/ ]</i></sub></p>
 
 ## Servidor MCP
 
-O Hefesto expõe um servidor MCP sobre SSE em `GET /sse` + `POST /mcp/message`.
-Conecte um cliente MCP e opere tudo por linguagem natural:
+O backend não é só uma API web: ele **é um servidor MCP** (sobre SSE). Qualquer
+cliente MCP — Claude Code, Claude Desktop — passa a operar o Hefesto por linguagem
+natural, e os prompts viram atalhos prontos no cliente.
 
 ```bash
 # Claude Code (transporte SSE nativo)
@@ -114,141 +107,89 @@ claude mcp add --transport sse hefesto http://localhost:8080/sse
 
 - **14 tools** — ex.: `jira_search`, `jira_create_story`, `review_story`,
   `generate_test_cases`, `create_test_subtasks`, `coverage_report`, `chat`.
-- **2 resources** — `hefesto://agents`, `hefesto://models`.
+- **2 resources** — `hefesto://agents`, `hefesto://models` (contexto que o cliente puxa).
 - **3 prompts** — `revisar_historia`, `gerar_testes_no_jira`, `rascunhar_historia`.
 
-Referência completa: [docs/MCP.md](./docs/MCP.md).
+Endpoints: `GET /sse` + `POST /mcp/message`. Referência completa em
+[docs/MCP.md](./docs/MCP.md).
 
 ## Fluxos de trabalho
 
-### Fluxo PO → QA (com IA)
+### Fluxo PO → QA, do requisito à cobertura
 
-Na aba **Jira**, do requisito à cobertura:
+Na aba **Jira**:
 
-1. **Nova história** — cole o requisito (ou anexe um print da tela). A IA gera o
-   rascunho (título, descrição, critérios). Selecione projeto e tipo e crie.
-2. **Revisar (INVEST)** — score de prontidão, gaps, riscos e critérios faltantes;
-   com opção de comentar no Jira.
-3. **Gerar testes no Jira** — os casos de teste viram subtarefas da história.
-4. **Cobertura** — matriz critérios × testes, apontando o que ficou descoberto.
+1. **Nova história** — cole o requisito ou anexe um print da tela. A IA gera o
+   rascunho (título, descrição, critérios); ajuste, escolha projeto/tipo e crie.
+2. **Revisar (INVEST)** — score de prontidão com gaps, riscos e critérios
+   faltantes, opcionalmente comentado no Jira.
+3. **Gerar testes no Jira** — os casos viram subtarefas da história.
+4. **Cobertura** — matriz critérios × testes, destacando o que ficou descoberto.
 
-O mesmo fluxo está disponível por linguagem natural via MCP (ver
-[docs/MCP.md](./docs/MCP.md)).
+O mesmo fluxo roda por linguagem natural via MCP (ver [docs/MCP.md](./docs/MCP.md)).
 
 <!-- MÍDIA — vídeo do fluxo PO → QA de ponta a ponta. docs/media/fluxo-po-qa.* -->
 <p align="center"><sub><i>[ vídeo do fluxo PO → QA — adicionar em docs/media/ ]</i></sub></p>
 
-### Fluxo de execução de testes (clássico)
+### Fluxo de execução de testes
 
-1. Crie uma sessão de chat e selecione o agente QA Sênior.
-2. Anexe o manual da funcionalidade e a issue do Jira como contexto.
-3. Peça os casos de teste — eles chegam como cards interativos abaixo da resposta.
-4. Execute cada caso, marque aprovado/reprovado e anexe a evidência.
-5. Gere o relatório (HTML pronto para PDF) com sumário e evidências inline.
+Crie uma sessão de chat com o agente QA Sênior, anexe o manual e a issue do Jira
+como contexto, peça os casos de teste (chegam como cards interativos), execute e
+marque cada um, anexe a evidência e gere o relatório HTML pronto para PDF.
 
-## Requisitos
+## Começando
 
-- **Java 17+** — backend
-- **Maven 3.9+** — build do backend
-- **Node.js 20 LTS+** — frontend
+### Requisitos
+
+- **Java 17+** e **Maven 3.9+** (backend), **Node.js 20 LTS+** (frontend)
 - **Claude Code CLI** instalado e logado (`claude --version`) — adapter padrão e
   modelo de visão usado no rascunho a partir de imagem
-- *(Opcional)* **Conta Atlassian Cloud** com API token, para integração Jira
-- *(Opcional)* **`llama-server`** (do [llama.cpp](https://github.com/ggml-org/llama.cpp))
-  e modelos `.gguf`, para rodar modelos locais offline
-- *(Opcional)* **VS Code com GitHub Copilot** + extensão Hefesto Bridge
+- *(Opcional)* **Conta Atlassian Cloud** com API token, para o Jira
+- *(Opcional)* **`llama-server`** ([llama.cpp](https://github.com/ggml-org/llama.cpp))
+  + modelos `.gguf`, para rodar modelos locais offline
+- *(Opcional)* **VS Code + GitHub Copilot** com a extensão Hefesto Bridge
 
-## Setup em 5 minutos
+### Subir o projeto
 
 ```bash
-# 1. Clone
 git clone https://github.com/SEU_USUARIO/hefesto.git
 cd hefesto
 
-# 2. Backend
-cd hefesto-backend
-mvn spring-boot:run
-# Sobe em http://localhost:8080
+# Backend → http://localhost:8080
+cd hefesto-backend && mvn spring-boot:run
 
-# 3. Frontend (em outro terminal)
-cd ../hefesto-frontend
-npm install
-npm run dev
-# Abre http://localhost:5173 no navegador
+# Frontend (outro terminal) → http://localhost:5173
+cd hefesto-frontend && npm install && npm run dev
 ```
 
-A pasta [`agentes/`](./agentes) na raiz vem com 9 agentes prontos. Edite os `.md`
-ou crie novos — recarrega com `curl -X POST http://localhost:8080/api/agents/reload`
-(sem reiniciar).
+A pasta [`agentes/`](./agentes) já vem com 9 agentes. Edite os `.md` ou crie novos
+— recarrega com `curl -X POST http://localhost:8080/api/agents/reload`, sem reiniciar.
 
-### (Opcional) Extensão VS Code para Copilot
+### Configurar credenciais
 
-```bash
-cd hefesto-bridge-extension
-npm install
-npm run package
-code --install-extension hefesto-bridge-0.1.0.vsix
-```
-
-Veja [hefesto-bridge-extension/README.md](./hefesto-bridge-extension/README.md)
-para distribuição interna.
-
-## Configuração
-
-Credenciais sensíveis ficam em
-`hefesto-backend/src/main/resources/application-local.yml` (gitignored).
-
-Crie esse arquivo para usar Jira:
+Credenciais ficam em `hefesto-backend/src/main/resources/application-local.yml`
+(gitignored). Para usar o Jira:
 
 ```yaml
 claude:
   cli:
-    path: /caminho/do/claude.cmd      # Windows: C:\Users\...\npm\claude.cmd
-                                       # Mac/Linux: /usr/local/bin/claude
+    path: /caminho/do/claude        # Windows: C:\Users\...\claude.exe
 
 jira:
   url: https://suaempresa.atlassian.net
   email: voce@empresa.com
-  token: "API_TOKEN_GERADO_NO_ATLASSIAN_ID"
+  token: "API_TOKEN_DO_ATLASSIAN_ID"
 ```
 
-API token: gere em [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens).
-Reinicie o backend após salvar.
+Token: [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens).
+Reinicie o backend após salvar. Para os modelos locais, suba o `llama-server` com
+[`scripts/start-llama-servers.bat`](./scripts/start-llama-servers.bat).
 
-## Agentes especialistas
+## Arquitetura e stack
 
-Cada agente é um **arquivo `.md` em [`agentes/`](./agentes)**. O nome do arquivo
-aparece direto na seleção — ex.: `QAseniorAgent.md` é o agente.
-
-```markdown
----
-description: "Designer sênior de casos de teste"
-emoji: "🧪"
-defaultPromptTemplate: "Analise e gere casos de teste."
-extractsTestCases: true
----
-
-Você é um QA Specialist sênior. Sua missão é...
-[system prompt completo]
-```
-
-Documentação completa: [agentes/README.md](./agentes/README.md).
-
-**Inclusos por padrão:**
-
-| Arquivo | Persona |
-|---|---|
-| `Default.md` | Sem persona — assistente geral |
-| `QAseniorAgent.md` | QA sênior, gera casos de teste estruturados |
-| `EscritorDeHistorias.md` | Escreve rascunho de história (JSON) a partir de requisito ou imagem |
-| `RevisorDeHistorias.md` | Avalia prontidão (INVEST) com score, gaps e riscos |
-| `AnalistaDeCobertura.md` | Cruza critérios de aceite com casos de teste (cobertura) |
-| `AnalistaDeNegocios.md` | Avalia histórias do Jira (clareza, completude, gaps) |
-| `TechWriter.md` | Documentação técnica em formato padrão |
-| `Arquiteto.md` | Análise técnica com 2-3 abordagens e trade-offs |
-| `CodeReviewer.md` | Revisão de código (bugs, segurança, performance) |
-
-## Arquitetura
+UI e clientes MCP entram por caminhos diferentes (REST/WebSocket e SSE) mas caem
+nos **mesmos serviços** — a lógica de negócio é compartilhada, não duplicada. A
+camada de modelos é plugável: cada LLM é um `LlmAdapter`.
 
 ```
 [ Browser ]            [ Cliente MCP ]            [ Backend :8080 ]        [ SQLite ]
@@ -272,74 +213,55 @@ localhost:5173         Claude Code/Desktop                                hefest
                                                      └──────────────────┘
 ```
 
-A UI (REST/WS) e os clientes MCP (SSE) caem nos **mesmos serviços** — a lógica é
-compartilhada. A camada de adapters é plugável: adicionar um modelo é implementar
-`LlmAdapter`. Detalhes em [hefesto-backend/README.md](./hefesto-backend/README.md)
-e [docs/MCP.md](./docs/MCP.md).
-
-## Stack
-
 **Backend** — Java 17, Spring Boot 3.4, Spring AI 1.0 (servidor MCP), Spring Data
 JDBC, SQLite, WebSocket, Jackson, JUnit 5.
-
 **Frontend** — React 18, TypeScript strict, Vite, Tailwind CSS, TanStack Query,
 Zustand, react-markdown, Framer Motion, Lucide.
-
 **Extensão VS Code** — TypeScript, VS Code Language Model API.
 
-## Estrutura do repositório
+Detalhes em [hefesto-backend/README.md](./hefesto-backend/README.md) e
+[docs/MCP.md](./docs/MCP.md).
 
+## Agentes especialistas
+
+Cada agente é um **arquivo `.md` em [`agentes/`](./agentes)** — sem mexer no
+código, com hot reload. O frontmatter define metadados; o corpo é o system prompt.
+
+```markdown
+---
+description: "Designer sênior de casos de teste"
+emoji: "🧪"
+defaultPromptTemplate: "Analise e gere casos de teste."
+extractsTestCases: true
+---
+
+Você é um QA Specialist sênior. Sua missão é...
 ```
-hefesto/
-├── README.md                      # você está aqui
-├── APRESENTACAO.md                # pitch resumido para apresentações
-├── CONTRIBUTING.md                # como contribuir
-├── LICENSE                        # MIT
-│
-├── docs/
-│   ├── MCP.md                     # referência do servidor MCP (tools/resources/prompts)
-│   └── media/                     # imagens e vídeos do README
-│
-├── scripts/
-│   └── start-llama-servers.bat    # sobe llama-server por modelo .gguf
-│
-├── agentes/                       # arquivos .md dos agentes
-│   ├── README.md                  # como criar/editar agentes
-│   ├── Default.md
-│   ├── QAseniorAgent.md
-│   ├── EscritorDeHistorias.md     # rascunho de história (texto/imagem)
-│   ├── RevisorDeHistorias.md      # revisão INVEST
-│   ├── AnalistaDeCobertura.md     # matriz de cobertura
-│   ├── AnalistaDeNegocios.md
-│   ├── TechWriter.md
-│   ├── Arquiteto.md
-│   └── CodeReviewer.md
-│
-├── hefesto-backend/               # Spring Boot 3 + Spring AI (MCP) + SQLite
-│   └── README.md                  # docs específicas
-│
-├── hefesto-frontend/              # React + Vite + Tailwind
-│   └── README.md                  # docs específicas
-│
-└── hefesto-bridge-extension/      # extensão VS Code (Copilot bridge)
-    └── README.md                  # docs específicas
-```
+
+| Arquivo | Persona |
+|---|---|
+| `QAseniorAgent.md` | QA sênior, gera casos de teste estruturados |
+| `EscritorDeHistorias.md` | Escreve rascunho de história a partir de requisito ou imagem |
+| `RevisorDeHistorias.md` | Avalia prontidão (INVEST) com score, gaps e riscos |
+| `AnalistaDeCobertura.md` | Cruza critérios de aceite com casos de teste |
+| `AnalistaDeNegocios.md` | Avalia histórias do Jira (clareza, completude, gaps) |
+| `TechWriter.md` · `Arquiteto.md` · `CodeReviewer.md` · `Default.md` | Documentação, análise técnica, code review, assistente geral |
+
+Documentação completa: [agentes/README.md](./agentes/README.md).
 
 ## Roadmap
 
 **Entregue:**
 
-- [x] Chat com streaming via WebSocket, persistido em SQLite
-- [x] Multi-adapter de LLM: Claude Code + modelos locais `.gguf` (llama-server) + Copilot
-- [x] Agentes em arquivos `.md` (hot reload)
 - [x] Servidor MCP (14 tools, 2 resources, 3 prompts) sobre SSE
 - [x] Jira completo: ler e escrever (criar/atualizar/transicionar/comentar/subtarefas)
 - [x] Rascunho de história com IA a partir de texto ou imagem de tela (visão)
 - [x] Revisão de prontidão (INVEST) com score, gaps e riscos
 - [x] Geração de casos de teste em subtarefas do Jira, em um passo
 - [x] Matriz de cobertura (critérios de aceite × testes)
-- [x] Extração de casos `TC-NNN`, evidências por caso, relatório HTML/PDF
-- [x] Dashboard de Analytics (KPIs, latência, série temporal)
+- [x] Multi-adapter de LLM: Claude Code + modelos locais `.gguf` + Copilot
+- [x] Agentes em arquivos `.md` (hot reload), evidências por caso, relatório HTML/PDF
+- [x] Dashboard de Analytics e persistência local em SQLite
 
 **Planejado:**
 
@@ -347,16 +269,13 @@ hefesto/
 - [ ] Templates de export (Zephyr, Xray, TestRail)
 - [ ] Tools MCP extras: `estimate_story`, `find_similar` (deduplicação)
 - [ ] Streaming token-a-token via API direta
-- [ ] Hub central para agregar uso de múltiplas instâncias
+- [ ] Hub central para múltiplas instâncias
 
 ## Contribuindo
 
-Veja [CONTRIBUTING.md](./CONTRIBUTING.md). Resumo: branches com prefixo
-`feat/`/`fix/`/`docs/`, commits convencionais, testes para adapters e parsers,
-sem credenciais comitadas.
-
-Issues e PRs são bem-vindos. Para agentes novos, abra um PR adicionando um `.md`
-na pasta `agentes/` — fica versionado junto com o projeto.
+Veja [CONTRIBUTING.md](./CONTRIBUTING.md): branches `feat/`/`fix/`/`docs/`, commits
+convencionais, testes para adapters e parsers, sem credenciais comitadas. Para um
+agente novo, abra um PR adicionando um `.md` em `agentes/`.
 
 ## Licença
 
@@ -364,9 +283,8 @@ na pasta `agentes/` — fica versionado junto com o projeto.
 
 ---
 
-> Detalhes técnicos por módulo:
-> - [docs/MCP.md](./docs/MCP.md) — servidor MCP: tools, resources, prompts, como conectar
-> - [hefesto-backend/README.md](./hefesto-backend/README.md) — pacotes Java, contratos de adapter, persistência, testes
-> - [hefesto-frontend/README.md](./hefesto-frontend/README.md) — design system, componentes, theming, estado
-> - [hefesto-bridge-extension/README.md](./hefesto-bridge-extension/README.md) — build/install/distribuição interna
-> - [agentes/README.md](./agentes/README.md) — sistema de agentes em arquivos
+> Detalhes por módulo: [docs/MCP.md](./docs/MCP.md) ·
+> [hefesto-backend/README.md](./hefesto-backend/README.md) ·
+> [hefesto-frontend/README.md](./hefesto-frontend/README.md) ·
+> [hefesto-bridge-extension/README.md](./hefesto-bridge-extension/README.md) ·
+> [agentes/README.md](./agentes/README.md)
