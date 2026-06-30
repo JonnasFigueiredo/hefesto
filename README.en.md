@@ -162,6 +162,23 @@ report.
 
 ### Run the project
 
+**Windows, one command.** The [`start.ps1`](./start.ps1) script resolves the JDK,
+Node and Maven (downloading Maven into `.tools/` if missing), builds the backend,
+installs the frontend dependencies and launches both, each in its own window:
+
+```powershell
+git clone https://github.com/SEU_USUARIO/hefesto.git
+cd hefesto
+.\start.ps1            # build + run backend (:8080) and frontend (:5173)
+```
+
+Other options: `-Rebuild` (force the backend repackage), `-Tests` (run tests during
+the build), `-BackendOnly` / `-FrontendOnly`, `-BuildOnly`. If PowerShell blocks the
+script, allow it once with
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+**Manual (any OS).**
+
 ```bash
 git clone https://github.com/SEU_USUARIO/hefesto.git
 cd hefesto

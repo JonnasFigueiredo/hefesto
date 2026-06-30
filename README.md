@@ -161,6 +161,23 @@ marque cada um, anexe a evidência e gere o relatório HTML pronto para PDF.
 
 ### Subir o projeto
 
+**Windows, em um comando.** O script [`start.ps1`](./start.ps1) resolve JDK, Node e
+Maven (baixa o Maven em `.tools/` se faltar), builda o backend, instala as
+dependências do frontend e sobe os dois, cada um na sua janela:
+
+```powershell
+git clone https://github.com/SEU_USUARIO/hefesto.git
+cd hefesto
+.\start.ps1            # build + sobe backend (:8080) e frontend (:5173)
+```
+
+Outras opções: `-Rebuild` (força o repackage do backend), `-Tests` (roda os testes
+no build), `-BackendOnly` / `-FrontendOnly`, `-BuildOnly`. Se o PowerShell bloquear
+a execução do script, libere uma vez com
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+**Manual (qualquer SO).**
+
 ```bash
 git clone https://github.com/SEU_USUARIO/hefesto.git
 cd hefesto
