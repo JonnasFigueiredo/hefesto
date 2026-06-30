@@ -22,3 +22,6 @@ hefesto-frontend/.vite/
 .env
 .env.local
 *.local
+
+# Cache local de ferramentas (Maven baixado pelo start.ps1)
+.tools/
