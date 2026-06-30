@@ -93,11 +93,9 @@ dropdown; adding a new one is implementing an interface.
 Analytics dashboard (KPIs, latency, time series). All in SQLite, no infrastructure.
 
 <p align="center">
-  <img src="docs/media/ui-create-story.png" width="420" alt="New story modal with AI assist (text or image)">
-  &nbsp;
-  <img src="docs/media/ui-chat.png" width="420" alt="Multi-model chat with agents and test case generation">
+  <img src="docs/media/ui-create-story.png" width="560" alt="New story modal with AI assist (text or a screenshot)">
 </p>
-<p align="center"><sub>Create a story with AI (left) · multi-model chat with agents (right)</sub></p>
+<p align="center"><sub>Create a story with AI, from text or a screenshot</sub></p>
 
 ## MCP server
 
@@ -144,6 +142,11 @@ Create a chat session with the QA Senior agent, attach the manual and the Jira
 issue as context, ask for the test cases (they arrive as interactive cards),
 execute and mark each one, attach the evidence and generate the print-ready HTML
 report.
+
+<p align="center">
+  <img src="docs/media/ui-chat-qa.png" width="860" alt="Chat with the QA Senior agent generating structured test cases, with positive and negative scenarios, steps and expected result">
+</p>
+<p align="center"><sub>The QA Senior agent generates structured test cases right in the chat</sub></p>
 
 ## Getting started
 

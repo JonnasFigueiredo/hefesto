@@ -93,11 +93,9 @@ dashboard de Analytics (KPIs, latência, série temporal). Tudo em SQLite, sem
 infraestrutura.
 
 <p align="center">
-  <img src="docs/media/ui-create-story.png" width="420" alt="Modal de nova história com assistência de IA (texto ou imagem)">
-  &nbsp;
-  <img src="docs/media/ui-chat.png" width="420" alt="Chat multi-modelo com agentes e geração de casos de teste">
+  <img src="docs/media/ui-create-story.png" width="560" alt="Modal de nova história com assistência de IA (texto ou imagem de tela)">
 </p>
-<p align="center"><sub>Criar história com IA (esquerda) · chat multi-modelo com agentes (direita)</sub></p>
+<p align="center"><sub>Criar história com IA, a partir de texto ou de uma imagem de tela</sub></p>
 
 ## Servidor MCP
 
@@ -143,6 +141,11 @@ O mesmo fluxo roda por linguagem natural via MCP (ver [docs/MCP.md](./docs/MCP.m
 Crie uma sessão de chat com o agente QA Sênior, anexe o manual e a issue do Jira
 como contexto, peça os casos de teste (chegam como cards interativos), execute e
 marque cada um, anexe a evidência e gere o relatório HTML pronto para PDF.
+
+<p align="center">
+  <img src="docs/media/ui-chat-qa.png" width="860" alt="Chat com o agente QA Sênior gerando casos de teste estruturados, com cenários positivos e negativos, passos e resultado esperado">
+</p>
+<p align="center"><sub>O agente QA Sênior gera os casos de teste estruturados direto no chat</sub></p>
 
 ## Começando
 
