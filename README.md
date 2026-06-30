@@ -18,6 +18,8 @@
 [![Node 20+](https://img.shields.io/badge/Node-20+-cyan)](#começando)
 [![MCP server](https://img.shields.io/badge/MCP-server-cyan)](./docs/MCP.md)
 
+**Português** · [English](./README.en.md)
+
 <p align="center">
   <img src="docs/media/ui-jira-detail.png" width="860" alt="Painel do Jira no Hefesto, com ações de IA: revisar (INVEST), cobertura e gerar testes">
 </p>
@@ -33,7 +35,6 @@
 - [Começando](#começando)
 - [Arquitetura e stack](#arquitetura-e-stack)
 - [Agentes especialistas](#agentes-especialistas)
-- [Roadmap](#roadmap)
 
 ---
 
@@ -193,36 +194,55 @@ Reinicie o backend após salvar. Para os modelos locais, suba o `llama-server` c
 
 ## Arquitetura e stack
 
-UI e clientes MCP entram por caminhos diferentes (REST/WebSocket e SSE) mas caem
-nos **mesmos serviços** — a lógica de negócio é compartilhada, não duplicada. A
-camada de modelos é plugável: cada LLM é um `LlmAdapter`.
+A UI e os clientes MCP entram por caminhos diferentes (REST/WebSocket e SSE) mas
+caem nos **mesmos serviços** — a lógica de negócio é compartilhada, não duplicada.
+A camada de modelos é plugável: cada LLM é um `LlmAdapter`.
 
-```
-[ Browser ]            [ Cliente MCP ]            [ Backend :8080 ]        [ SQLite ]
-localhost:5173         Claude Code/Desktop                                hefesto.db
-   React 18  ─WS/REST─▶                  ─MCP/SSE─▶  ┌──────────────────┐
-   Tailwind                                          │ REST + WebSocket │
-                                                     │ Servidor MCP     │ 14 tools
-                                                     │  (Spring AI)     │ 2 res · 3 prompts
-                                                     ├──────────────────┤
-                                                     │ LlmAdapterRegistry
-                                                     │  ├ Claude Code (CLI, visão)
-                                                     │  ├ llama-server (.gguf local)
-                                                     │  ├ Copilot (extensão VS Code)
-                                                     │  └ Gemini/Codex/Anthropic (stubs)
-                                                     ├──────────────────┤
-                                                     │ JiraService (REST v3, ler+escrever)
-                                                     │ Story/Review/Coverage Services (IA)
-                                                     │ PromptBuilder · AgentRegistry
-                                                     │ TestCase Extractor · Telemetry
-                                                     │ Report Service (HTML → PDF)
-                                                     └──────────────────┘
+```mermaid
+flowchart LR
+    UI["Browser · React UI<br/>:5173"]
+    MCPC["Cliente MCP<br/>Claude Code / Desktop"]
+
+    subgraph BK["Hefesto Backend · :8080"]
+        direction TB
+        API["REST + WebSocket"]
+        MCPS["Servidor MCP · SSE<br/>14 tools · 2 resources · 3 prompts"]
+        SVC["Serviços<br/>Jira · Story / Review / Coverage<br/>TestCases · Telemetry · Report"]
+        REG["LlmAdapterRegistry"]
+        API --> SVC
+        MCPS --> SVC
+        SVC --> REG
+    end
+
+    UI -- "REST / WS" --> API
+    MCPC -- "SSE" --> MCPS
+
+    REG --> CC["Claude Code · visão"]
+    REG --> LL["llama-server · .gguf local"]
+    REG --> CP["Copilot · Gemini · Codex"]
+    SVC --> JIRA[("Jira REST v3<br/>ler + escrever")]
+    SVC --> DB[("SQLite")]
 ```
 
-**Backend** — Java 17, Spring Boot 3.4, Spring AI 1.0 (servidor MCP), Spring Data
-JDBC, SQLite, WebSocket, Jackson, JUnit 5.
-**Frontend** — React 18, TypeScript strict, Vite, Tailwind CSS, TanStack Query,
-Zustand, react-markdown, Framer Motion, Lucide.
+### Stack
+
+**Backend**
+
+![Java 17](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)
+![Spring Boot 3.4](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?logo=springboot&logoColor=white)
+![Spring AI](https://img.shields.io/badge/Spring_AI-MCP-6DB33F?logo=spring&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
+![JUnit 5](https://img.shields.io/badge/JUnit-5-25A162?logo=junit5&logoColor=white)
+
+**Frontend**
+
+![React 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwindcss&logoColor=white)
+![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?logo=reactquery&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-433E38?logo=react&logoColor=white)
+
 **Extensão VS Code** — TypeScript, VS Code Language Model API.
 
 Detalhes em [hefesto-backend/README.md](./hefesto-backend/README.md) e
@@ -254,28 +274,6 @@ Você é um QA Specialist sênior. Sua missão é...
 | `TechWriter.md` · `Arquiteto.md` · `CodeReviewer.md` · `Default.md` | Documentação, análise técnica, code review, assistente geral |
 
 Documentação completa: [agentes/README.md](./agentes/README.md).
-
-## Roadmap
-
-**Entregue:**
-
-- [x] Servidor MCP (14 tools, 2 resources, 3 prompts) sobre SSE
-- [x] Jira completo: ler e escrever (criar/atualizar/transicionar/comentar/subtarefas)
-- [x] Rascunho de história com IA a partir de texto ou imagem de tela (visão)
-- [x] Revisão de prontidão (INVEST) com score, gaps e riscos
-- [x] Geração de casos de teste em subtarefas do Jira, em um passo
-- [x] Matriz de cobertura (critérios de aceite × testes)
-- [x] Multi-adapter de LLM: Claude Code + modelos locais `.gguf` + Copilot
-- [x] Agentes em arquivos `.md` (hot reload), evidências por caso, relatório HTML/PDF
-- [x] Dashboard de Analytics e persistência local em SQLite
-
-**Planejado:**
-
-- [ ] Postar resumo de execução de testes no Jira automaticamente
-- [ ] Templates de export (Zephyr, Xray, TestRail)
-- [ ] Tools MCP extras: `estimate_story`, `find_similar` (deduplicação)
-- [ ] Streaming token-a-token via API direta
-- [ ] Hub central para múltiplas instâncias
 
 ## Contribuindo
 
