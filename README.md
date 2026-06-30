@@ -18,9 +18,9 @@
 [![Node 20+](https://img.shields.io/badge/Node-20+-cyan)](#começando)
 [![MCP server](https://img.shields.io/badge/MCP-server-cyan)](./docs/MCP.md)
 
-<!-- MÍDIA — vídeo de demonstração (hero). Troque o bloco abaixo por:
-     <p align="center"><img src="docs/media/demo.gif" width="820" alt="Demonstração do Hefesto"></p> -->
-<p align="center"><sub><i>[ vídeo de demonstração — adicionar em docs/media/ ]</i></sub></p>
+<p align="center">
+  <img src="docs/media/ui-jira-detail.png" width="860" alt="Painel do Jira no Hefesto, com ações de IA: revisar (INVEST), cobertura e gerar testes">
+</p>
 
 ---
 
@@ -91,8 +91,12 @@ adicionar um novo é implementar uma interface.
 dashboard de Analytics (KPIs, latência, série temporal). Tudo em SQLite, sem
 infraestrutura.
 
-<!-- MÍDIA — screenshots da interface (chat, Jira, analytics). docs/media/ui-*.png -->
-<p align="center"><sub><i>[ screenshots da interface — adicionar em docs/media/ ]</i></sub></p>
+<p align="center">
+  <img src="docs/media/ui-create-story.png" width="420" alt="Modal de nova história com assistência de IA (texto ou imagem)">
+  &nbsp;
+  <img src="docs/media/ui-chat.png" width="420" alt="Chat multi-modelo com agentes e geração de casos de teste">
+</p>
+<p align="center"><sub>Criar história com IA (esquerda) · chat multi-modelo com agentes (direita)</sub></p>
 
 ## Servidor MCP
 
@@ -128,8 +132,10 @@ Na aba **Jira**:
 
 O mesmo fluxo roda por linguagem natural via MCP (ver [docs/MCP.md](./docs/MCP.md)).
 
-<!-- MÍDIA — vídeo do fluxo PO → QA de ponta a ponta. docs/media/fluxo-po-qa.* -->
-<p align="center"><sub><i>[ vídeo do fluxo PO → QA — adicionar em docs/media/ ]</i></sub></p>
+<p align="center">
+  <img src="docs/media/ui-coverage.png" width="860" alt="Matriz de cobertura: cada critério de aceite mapeado aos casos de teste que o cobrem, com a porcentagem de cobertura">
+</p>
+<p align="center"><sub>Matriz de cobertura: critérios de aceite × casos de teste, com o que ficou descoberto</sub></p>
 
 ### Fluxo de execução de testes
 
