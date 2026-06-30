@@ -1,7 +1,7 @@
 # Hefesto
 
-> Da ideia ao teste, sem trocar de aba. Uma plataforma de QA/PO assistida por IA —
-> também exposta como **servidor MCP** — que transforma um requisito (texto ou
+> Da ideia ao teste, sem trocar de aba. Uma plataforma de QA/PO assistida por IA,
+> também exposta como **servidor MCP**, que transforma um requisito (texto ou
 > print de tela) em história no Jira, casos de teste e relatório de cobertura.
 
 ```
@@ -42,10 +42,10 @@
 
 Escrever a história, revisar, criar os casos de teste, anexar evidência, atualizar
 o Jira. No papel é simples; na prática vira um vaivém entre chat, Jira, planilha e
-documento — cada um perdendo contexto do anterior. O Hefesto fecha esse ciclo num
+documento, cada um perdendo contexto do anterior. O Hefesto fecha esse ciclo num
 lugar só, com a IA fazendo o trabalho pesado e o Jira como fonte da verdade.
 
-A partir de um requisito — em **texto ou até um print de tela** — o Hefesto:
+A partir de um requisito em **texto ou até um print de tela**, o Hefesto:
 
 1. **escreve a história** (título, descrição e critérios de aceite);
 2. **avalia a prontidão** dela com critério INVEST (gaps, riscos, score);
@@ -54,29 +54,29 @@ A partir de um requisito — em **texto ou até um print de tela** — o Hefesto
 
 E faz isso de dois jeitos. Pela **interface web**, num fluxo guiado de ponta a
 ponta. E por **linguagem natural**: como o backend é também um **servidor MCP**, o
-mesmo poder está dentro do seu Claude Code/Desktop — *"analise este requisito,
-crie a história no projeto X e gere os casos de teste como subtarefas"* — sem sair
-do editor.
+mesmo poder está dentro do seu Claude Code/Desktop (*"analise este requisito, crie
+a história no projeto X e gere os casos de teste como subtarefas"*), sem sair do
+editor.
 
 Feito para **QA, dev e PO** que já usam IA no dia a dia e querem parar de costurar
 contexto na mão.
 
 ## O que faz
 
-**Do requisito à história, com IA.** Cole o requisito ou anexe o design da tela —
-o Hefesto entende o que está na imagem (campos, botões, fluxos) e devolve uma
+**Do requisito à história, com IA.** Cole o requisito ou anexe o design da tela.
+O Hefesto entende o que está na imagem (campos, botões, fluxos) e devolve uma
 história pronta: título, descrição no formato de valor e critérios de aceite
 testáveis. Revise e crie no Jira em um clique.
 
 **Qualidade antes do código.** A revisão de prontidão aplica o critério **INVEST**
-e devolve um score de 0 a 100 com gaps, riscos e critérios faltantes — e, se você
+e devolve um score de 0 a 100 com gaps, riscos e critérios faltantes. Se você
 quiser, registra tudo como comentário na própria issue. O time entra no
 desenvolvimento com a história já madura.
 
 **Teste rastreável.** A geração de casos cria **uma subtarefa por caso** sob a
 história, no formato `TC-NNN`. Em seguida, a **matriz de cobertura** cruza
 critérios de aceite com os testes e mostra, preto no branco, quais critérios ainda
-estão descobertos — o tipo de planilha que QA sênior monta na mão.
+estão descobertos: o tipo de planilha que QA sênior monta na mão.
 
 **Jira de verdade (ler e escrever).** Busca por JQL, leitura de
 descrição/critérios/comentários e escrita completa: criar, atualizar, transicionar
@@ -102,18 +102,18 @@ infraestrutura.
 ## Servidor MCP
 
 O backend não é só uma API web: ele **é um servidor MCP** (sobre SSE). Qualquer
-cliente MCP — Claude Code, Claude Desktop — passa a operar o Hefesto por linguagem
-natural, e os prompts viram atalhos prontos no cliente.
+cliente MCP, como Claude Code ou Claude Desktop, passa a operar o Hefesto por
+linguagem natural, e os prompts viram atalhos prontos no cliente.
 
 ```bash
 # Claude Code (transporte SSE nativo)
 claude mcp add --transport sse hefesto http://localhost:8080/sse
 ```
 
-- **14 tools** — ex.: `jira_search`, `jira_create_story`, `review_story`,
+- **14 tools**, ex.: `jira_search`, `jira_create_story`, `review_story`,
   `generate_test_cases`, `create_test_subtasks`, `coverage_report`, `chat`.
-- **2 resources** — `hefesto://agents`, `hefesto://models` (contexto que o cliente puxa).
-- **3 prompts** — `revisar_historia`, `gerar_testes_no_jira`, `rascunhar_historia`.
+- **2 resources**: `hefesto://agents`, `hefesto://models` (contexto que o cliente puxa).
+- **3 prompts**: `revisar_historia`, `gerar_testes_no_jira`, `rascunhar_historia`.
 
 Endpoints: `GET /sse` + `POST /mcp/message`. Referência completa em
 [docs/MCP.md](./docs/MCP.md).
@@ -124,12 +124,12 @@ Endpoints: `GET /sse` + `POST /mcp/message`. Referência completa em
 
 Na aba **Jira**:
 
-1. **Nova história** — cole o requisito ou anexe um print da tela. A IA gera o
+1. **Nova história**: cole o requisito ou anexe um print da tela. A IA gera o
    rascunho (título, descrição, critérios); ajuste, escolha projeto/tipo e crie.
-2. **Revisar (INVEST)** — score de prontidão com gaps, riscos e critérios
+2. **Revisar (INVEST)**: score de prontidão com gaps, riscos e critérios
    faltantes, opcionalmente comentado no Jira.
-3. **Gerar testes no Jira** — os casos viram subtarefas da história.
-4. **Cobertura** — matriz critérios × testes, destacando o que ficou descoberto.
+3. **Gerar testes no Jira**: os casos viram subtarefas da história.
+4. **Cobertura**: matriz critérios × testes, destacando o que ficou descoberto.
 
 O mesmo fluxo roda por linguagem natural via MCP (ver [docs/MCP.md](./docs/MCP.md)).
 
@@ -149,7 +149,7 @@ marque cada um, anexe a evidência e gere o relatório HTML pronto para PDF.
 ### Requisitos
 
 - **Java 17+** e **Maven 3.9+** (backend), **Node.js 20 LTS+** (frontend)
-- **Claude Code CLI** instalado e logado (`claude --version`) — adapter padrão e
+- **Claude Code CLI** instalado e logado (`claude --version`): adapter padrão e
   modelo de visão usado no rascunho a partir de imagem
 - *(Opcional)* **Conta Atlassian Cloud** com API token, para o Jira
 - *(Opcional)* **`llama-server`** ([llama.cpp](https://github.com/ggml-org/llama.cpp))
@@ -169,8 +169,8 @@ cd hefesto-backend && mvn spring-boot:run
 cd hefesto-frontend && npm install && npm run dev
 ```
 
-A pasta [`agentes/`](./agentes) já vem com 9 agentes. Edite os `.md` ou crie novos
-— recarrega com `curl -X POST http://localhost:8080/api/agents/reload`, sem reiniciar.
+A pasta [`agentes/`](./agentes) já vem com 9 agentes. Edite os `.md` ou crie novos.
+Recarrega com `curl -X POST http://localhost:8080/api/agents/reload`, sem reiniciar.
 
 ### Configurar credenciais
 
@@ -195,8 +195,8 @@ Reinicie o backend após salvar. Para os modelos locais, suba o `llama-server` c
 ## Arquitetura e stack
 
 A UI e os clientes MCP entram por caminhos diferentes (REST/WebSocket e SSE) mas
-caem nos **mesmos serviços** — a lógica de negócio é compartilhada, não duplicada.
-A camada de modelos é plugável: cada LLM é um `LlmAdapter`.
+caem nos **mesmos serviços**: a lógica de negócio é compartilhada, não duplicada.
+A camada de modelos é plugável, cada LLM é um `LlmAdapter`.
 
 ```mermaid
 flowchart LR
@@ -243,20 +243,19 @@ flowchart LR
 ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?logo=reactquery&logoColor=white)
 ![Zustand](https://img.shields.io/badge/Zustand-433E38?logo=react&logoColor=white)
 
-**Extensão VS Code** — TypeScript, VS Code Language Model API.
+**Extensão VS Code**: TypeScript, VS Code Language Model API.
 
 Detalhes em [hefesto-backend/README.md](./hefesto-backend/README.md) e
 [docs/MCP.md](./docs/MCP.md).
 
 ## Agentes especialistas
 
-Cada agente é um **arquivo `.md` em [`agentes/`](./agentes)** — sem mexer no
-código, com hot reload. O frontmatter define metadados; o corpo é o system prompt.
+Cada agente é um **arquivo `.md` em [`agentes/`](./agentes)**, sem mexer no código,
+com hot reload. O frontmatter define metadados; o corpo é o system prompt.
 
 ```markdown
 ---
 description: "Designer sênior de casos de teste"
-emoji: "🧪"
 defaultPromptTemplate: "Analise e gere casos de teste."
 extractsTestCases: true
 ---
@@ -283,7 +282,7 @@ agente novo, abra um PR adicionando um `.md` em `agentes/`.
 
 ## Licença
 
-[MIT](./LICENSE) — use, modifique, distribua. Atribuição apreciada, não obrigatória.
+[MIT](./LICENSE). Use, modifique, distribua. Atribuição apreciada, não obrigatória.
 
 ---
 

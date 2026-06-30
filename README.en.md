@@ -1,8 +1,8 @@
 # Hefesto
 
-> From idea to test, without switching tabs. An AI-assisted QA/PO platform —
-> also exposed as an **MCP server** — that turns a requirement (text or a screen
-> shot) into a Jira story, test cases and a coverage report.
+> From idea to test, without switching tabs. An AI-assisted QA/PO platform, also
+> exposed as an **MCP server**, that turns a requirement (text or a screenshot)
+> into a Jira story, test cases and a coverage report.
 
 ```
    _   _   _____   _____   _____   _____   _____   _____
@@ -42,11 +42,11 @@
 
 Write the story, review it, create the test cases, attach evidence, update Jira.
 On paper it's simple; in practice it becomes a back-and-forth across chat, Jira,
-spreadsheet and document — each one losing the previous context. Hefesto closes
+spreadsheet and document, each one losing the previous context. Hefesto closes
 that loop in one place, with AI doing the heavy lifting and Jira as the source of
 truth.
 
-From a requirement — in **text or even a screenshot** — Hefesto:
+From a requirement in **text or even a screenshot**, Hefesto:
 
 1. **writes the story** (title, description and acceptance criteria);
 2. **assesses its readiness** with the INVEST criteria (gaps, risks, score);
@@ -55,9 +55,9 @@ From a requirement — in **text or even a screenshot** — Hefesto:
 
 And it does this in two ways. Through the **web interface**, in a guided
 end-to-end flow. And through **natural language**: since the backend is also an
-**MCP server**, the same power lives inside your Claude Code/Desktop — *"analyze
+**MCP server**, the same power lives inside your Claude Code/Desktop (*"analyze
 this requirement, create the story in project X and generate the test cases as
-subtasks"* — without leaving the editor.
+subtasks"*), without leaving the editor.
 
 Built for **QA, devs and POs** who already use AI day to day and want to stop
 stitching context by hand.
@@ -65,19 +65,19 @@ stitching context by hand.
 ## What it does
 
 **From requirement to story, with AI.** Paste the requirement or attach the screen
-design — Hefesto understands what's in the image (fields, buttons, flows) and
+design. Hefesto understands what's in the image (fields, buttons, flows) and
 returns a ready story: title, value-oriented description and testable acceptance
 criteria. Review and create it in Jira in one click.
 
 **Quality before code.** The readiness review applies the **INVEST** criteria and
-returns a 0–100 score with gaps, risks and missing criteria — and, if you want,
-posts it all as a comment on the issue. The team starts development with the story
+returns a 0 to 100 score with gaps, risks and missing criteria. If you want, it posts
+it all as a comment on the issue. The team starts development with the story
 already mature.
 
 **Traceable testing.** Test generation creates **one subtask per case** under the
 story, in the `TC-NNN` format. Then the **coverage matrix** crosses acceptance
 criteria with the tests and shows, in black and white, which criteria are still
-uncovered — the kind of spreadsheet a senior QA builds by hand.
+uncovered: the kind of spreadsheet a senior QA builds by hand.
 
 **Real Jira (read and write).** JQL search, reading of
 description/criteria/comments, and full writing: create, update, transition and
@@ -102,18 +102,18 @@ Analytics dashboard (KPIs, latency, time series). All in SQLite, no infrastructu
 ## MCP server
 
 The backend isn't just a web API: it **is an MCP server** (over SSE). Any MCP
-client — Claude Code, Claude Desktop — can drive Hefesto in natural language, and
-the prompts become ready-made shortcuts in the client.
+client, such as Claude Code or Claude Desktop, can drive Hefesto in natural
+language, and the prompts become ready-made shortcuts in the client.
 
 ```bash
 # Claude Code (native SSE transport)
 claude mcp add --transport sse hefesto http://localhost:8080/sse
 ```
 
-- **14 tools** — e.g. `jira_search`, `jira_create_story`, `review_story`,
+- **14 tools**, e.g. `jira_search`, `jira_create_story`, `review_story`,
   `generate_test_cases`, `create_test_subtasks`, `coverage_report`, `chat`.
-- **2 resources** — `hefesto://agents`, `hefesto://models` (context the client pulls in).
-- **3 prompts** — `revisar_historia`, `gerar_testes_no_jira`, `rascunhar_historia`.
+- **2 resources**: `hefesto://agents`, `hefesto://models` (context the client pulls in).
+- **3 prompts**: `revisar_historia`, `gerar_testes_no_jira`, `rascunhar_historia`.
 
 Endpoints: `GET /sse` + `POST /mcp/message`. Full reference in
 [docs/MCP.md](./docs/MCP.md).
@@ -124,12 +124,12 @@ Endpoints: `GET /sse` + `POST /mcp/message`. Full reference in
 
 In the **Jira** tab:
 
-1. **New story** — paste the requirement or attach a screenshot. The AI generates
+1. **New story**: paste the requirement or attach a screenshot. The AI generates
    the draft (title, description, criteria); adjust it, pick project/type and create.
-2. **Review (INVEST)** — readiness score with gaps, risks and missing criteria,
+2. **Review (INVEST)**: readiness score with gaps, risks and missing criteria,
    optionally commented on Jira.
-3. **Generate tests in Jira** — the cases become subtasks of the story.
-4. **Coverage** — criteria × tests matrix, highlighting what's uncovered.
+3. **Generate tests in Jira**: the cases become subtasks of the story.
+4. **Coverage**: criteria × tests matrix, highlighting what's uncovered.
 
 The same flow runs in natural language via MCP (see [docs/MCP.md](./docs/MCP.md)).
 
@@ -150,7 +150,7 @@ report.
 ### Requirements
 
 - **Java 17+** and **Maven 3.9+** (backend), **Node.js 20 LTS+** (frontend)
-- **Claude Code CLI** installed and logged in (`claude --version`) — default
+- **Claude Code CLI** installed and logged in (`claude --version`): default
   adapter and the vision model used for drafting from an image
 - *(Optional)* **Atlassian Cloud account** with API token, for Jira
 - *(Optional)* **`llama-server`** ([llama.cpp](https://github.com/ggml-org/llama.cpp))
@@ -171,7 +171,7 @@ cd hefesto-frontend && npm install && npm run dev
 ```
 
 The [`agentes/`](./agentes) folder ships with 9 agents. Edit the `.md` files or
-create new ones — reload with `curl -X POST http://localhost:8080/api/agents/reload`,
+create new ones. Reload with `curl -X POST http://localhost:8080/api/agents/reload`,
 no restart needed.
 
 ### Configure credentials
@@ -197,8 +197,8 @@ Restart the backend after saving. For local models, start `llama-server` with
 ## Architecture and stack
 
 The UI and MCP clients come in through different paths (REST/WebSocket and SSE)
-but land on the **same services** — the business logic is shared, not duplicated.
-The model layer is pluggable: each LLM is an `LlmAdapter`.
+but land on the **same services**: the business logic is shared, not duplicated.
+The model layer is pluggable, each LLM is an `LlmAdapter`.
 
 ```mermaid
 flowchart LR
@@ -245,20 +245,19 @@ flowchart LR
 ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?logo=reactquery&logoColor=white)
 ![Zustand](https://img.shields.io/badge/Zustand-433E38?logo=react&logoColor=white)
 
-**VS Code extension** — TypeScript, VS Code Language Model API.
+**VS Code extension**: TypeScript, VS Code Language Model API.
 
 Details in [hefesto-backend/README.md](./hefesto-backend/README.md) and
 [docs/MCP.md](./docs/MCP.md).
 
 ## Specialist agents
 
-Each agent is a **`.md` file in [`agentes/`](./agentes)** — no code changes, with
+Each agent is a **`.md` file in [`agentes/`](./agentes)**, no code changes, with
 hot reload. The frontmatter defines metadata; the body is the system prompt.
 
 ```markdown
 ---
 description: "Senior test case designer"
-emoji: "🧪"
 defaultPromptTemplate: "Analyze and generate test cases."
 extractsTestCases: true
 ---
@@ -285,7 +284,7 @@ For a new agent, open a PR adding a `.md` to `agentes/`.
 
 ## License
 
-[MIT](./LICENSE) — use, modify, distribute. Attribution appreciated, not required.
+[MIT](./LICENSE). Use, modify, distribute. Attribution appreciated, not required.
 
 ---
 
