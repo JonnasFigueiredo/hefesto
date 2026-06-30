@@ -29,6 +29,8 @@ export const translations: Record<Locale, Dict> = {
     // System status (sidebar footer)
     'status.backend': 'BACKEND',
     'status.adapter': 'ADAPTER',
+    'status.jira': 'JIRA',
+    'status.jiraOff': 'OFFLINE',
     'status.version': 'VERSÃO',
     'status.online': 'ONLINE',
     'status.offline': 'OFFLINE',
@@ -299,6 +301,8 @@ export const translations: Record<Locale, Dict> = {
     // System status
     'status.backend': 'BACKEND',
     'status.adapter': 'ADAPTER',
+    'status.jira': 'JIRA',
+    'status.jiraOff': 'OFFLINE',
     'status.version': 'VERSION',
     'status.online': 'ONLINE',
     'status.offline': 'OFFLINE',
